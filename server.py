@@ -1,4 +1,5 @@
 import json
+import logging
 import queue
 import threading
 import time
@@ -49,7 +50,7 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                 _state["track"] = None
                 _broadcast("waiting", {})
             except Exception:
-                pass
+                logging.exception("Unexpected error in poll loop")
             time.sleep(poll_interval)
 
     t = threading.Thread(target=_poll, daemon=True)
@@ -76,6 +77,8 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             finally:
                 with _lock:
                     _clients.remove(q)
+                    if not _clients:
+                        _has_client.clear()
 
         return Response(
             stream_with_context(generate()),
