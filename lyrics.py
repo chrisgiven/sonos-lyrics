@@ -33,7 +33,7 @@ def fetch_lyrics(artist: str, title: str) -> list[dict]:
         resp = requests.get(
             _LRCLIB_URL,
             params={"artist_name": artist, "track_name": title},
-            timeout=5,
+            timeout=15,
         )
         if resp.status_code == 404:
             _cache[key] = []
