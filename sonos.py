@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import requests
 import xml.etree.ElementTree as ET
 
@@ -37,3 +39,17 @@ def get_current_track(ip: str) -> dict:
         "album": root.findtext("album", "").strip(),
         "position_ms": position_ms,
     }
+
+
+def find_playing(ips: list[str]) -> dict:
+    """Poll all IPs in parallel and return the first one that's playing. Raises SonosUnavailableError if none are playing."""
+    with ThreadPoolExecutor(max_workers=len(ips)) as pool:
+        futures = {pool.submit(get_current_track, ip): ip for ip in ips}
+        for future in as_completed(futures):
+            try:
+                track = future.result()
+                if track["title"]:
+                    return track
+            except SonosUnavailableError:
+                continue
+    raise SonosUnavailableError("No playing speaker found")

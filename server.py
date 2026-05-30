@@ -7,7 +7,7 @@ import time
 from flask import Flask, Response, stream_with_context
 
 from lyrics import fetch_lyrics
-from sonos import SonosUnavailableError, get_current_track
+from sonos import SonosUnavailableError, find_playing, get_current_track
 
 
 def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float = 0.0) -> Flask:
@@ -25,6 +25,9 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             for q in list(_clients):
                 q.put(payload)
 
+    ips = [ip.strip() for ip in sonos_ip.split(",") if ip.strip()]
+    _get_track = (lambda: find_playing(ips)) if len(ips) > 1 else (lambda: get_current_track(ips[0]))
+
     def _poll():
         if initial_delay:
             time.sleep(initial_delay)
@@ -32,7 +35,7 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             # Wait until at least one client is connected before polling
             _has_client.wait()
             try:
-                track = get_current_track(sonos_ip)
+                track = _get_track()
                 prev = _state["track"]
                 if prev is None or track["title"] != prev["title"] or track["artist"] != prev["artist"]:
                     lyrics = fetch_lyrics(track["artist"], track["title"])
@@ -94,4 +97,5 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     load_dotenv()
     ip = os.environ["SONOS_IP"]
-    create_app(ip).run(host="0.0.0.0", port=5000, debug=False)
+    port = int(os.environ.get("PORT", 5001))
+    create_app(ip).run(host="0.0.0.0", port=port, debug=False)
