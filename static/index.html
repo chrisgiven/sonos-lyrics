@@ -1,1 +1,192 @@
-<html><body>Loading...</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sonos Lyrics</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d0d0d;
+    color: #888;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  #meta {
+    position: sticky;
+    top: 0;
+    background: #0d0d0ddd;
+    backdrop-filter: blur(12px);
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #1a1a1a;
+    z-index: 10;
+  }
+
+  #title { font-size: 1.05rem; font-weight: 600; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #artist { font-size: 0.85rem; color: #666; margin-top: 2px; }
+
+  #lyrics {
+    padding: 40vh 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .line {
+    font-size: 1.4rem;
+    line-height: 1.45;
+    color: #3a3a3a;
+    transition: color 0.25s ease, transform 0.25s ease;
+    cursor: default;
+  }
+
+  .line.active {
+    color: #ffffff;
+    transform: scale(1.03);
+    transform-origin: left center;
+  }
+
+  #status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80dvh;
+    font-size: 1rem;
+    color: #555;
+    gap: 10px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    background: #555;
+    border-radius: 50%;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+</style>
+</head>
+<body>
+
+<div id="meta" style="display:none">
+  <div id="title"></div>
+  <div id="artist"></div>
+</div>
+
+<div id="status">
+  <div class="dot"></div>
+  <span id="status-text">Connecting…</span>
+</div>
+
+<div id="lyrics" style="display:none"></div>
+
+<script>
+  const metaEl = document.getElementById("meta");
+  const titleEl = document.getElementById("title");
+  const artistEl = document.getElementById("artist");
+  const statusEl = document.getElementById("status");
+  const statusTextEl = document.getElementById("status-text");
+  const lyricsEl = document.getElementById("lyrics");
+
+  let lines = [];        // [{time_ms, text}]
+  let activeIdx = -1;
+  let positionMs = 0;
+  let rafId = null;
+
+  function showStatus(msg) {
+    metaEl.style.display = "none";
+    lyricsEl.style.display = "none";
+    statusEl.style.display = "flex";
+    statusTextEl.textContent = msg;
+  }
+
+  function renderTrack(data) {
+    titleEl.textContent = data.title || "Unknown";
+    artistEl.textContent = data.artist || "";
+    lines = data.lyrics || [];
+    activeIdx = -1;
+
+    metaEl.style.display = "block";
+    statusEl.style.display = "none";
+
+    if (lines.length === 0) {
+      lyricsEl.style.display = "none";
+      showStatus("No lyrics available");
+      metaEl.style.display = "block";
+      statusEl.style.display = "flex";
+      return;
+    }
+
+    lyricsEl.innerHTML = lines
+      .map((l, i) => `<div class="line" id="line-${i}">${l.text || "&nbsp;"}</div>`)
+      .join("");
+    lyricsEl.style.display = "flex";
+  }
+
+  function updateActive(pMs) {
+    if (lines.length === 0) return;
+
+    // Binary search for last line with time_ms <= pMs
+    let lo = 0, hi = lines.length - 1, idx = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (lines[mid].time_ms <= pMs) { idx = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+
+    if (idx === activeIdx) return;
+    if (activeIdx >= 0) {
+      document.getElementById(`line-${activeIdx}`)?.classList.remove("active");
+    }
+    activeIdx = idx;
+    if (activeIdx >= 0) {
+      const el = document.getElementById(`line-${activeIdx}`);
+      if (el) {
+        el.classList.add("active");
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }
+  }
+
+  // Smooth position interpolation between server ticks
+  let lastServerMs = 0;
+  let lastServerTimestamp = 0;
+
+  function tick() {
+    const elapsed = Date.now() - lastServerTimestamp;
+    const interpolated = lastServerMs + elapsed;
+    updateActive(interpolated);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  const es = new EventSource("/stream");
+
+  es.addEventListener("track_change", e => {
+    const data = JSON.parse(e.data);
+    renderTrack(data);
+    lastServerMs = 0;
+    lastServerTimestamp = Date.now();
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  });
+
+  es.addEventListener("position", e => {
+    const data = JSON.parse(e.data);
+    lastServerMs = data.position_ms;
+    lastServerTimestamp = Date.now();
+  });
+
+  es.addEventListener("waiting", () => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    showStatus("Waiting for Sonos…");
+  });
+
+  es.onerror = () => showStatus("Reconnecting…");
+</script>
+</body>
+</html>
