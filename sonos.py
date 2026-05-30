@@ -5,6 +5,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 
+_ZONE_SOAP_BODY = (
+    '<?xml version="1.0"?>'
+    '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">'
+    "<s:Body>"
+    '<u:GetZoneAttributes xmlns:u="urn:schemas-upnp-org:service:DeviceProperties:1">'
+    "</u:GetZoneAttributes>"
+    "</s:Body>"
+    "</s:Envelope>"
+)
+_ZONE_SOAP_HEADERS = {
+    "Content-Type": 'text/xml; charset="utf-8"',
+    "SOAPAction": '"urn:schemas-upnp-org:service:DeviceProperties:1#GetZoneAttributes"',
+}
+
 _SOAP_BODY = (
     '<?xml version="1.0"?>'
     '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
@@ -108,6 +122,37 @@ def get_current_track(ip: str) -> dict:
         raise
     except Exception as e:
         raise SonosUnavailableError(str(e)) from e
+
+
+def get_zone_name(ip: str) -> str:
+    """Return the room name for a speaker IP, or the IP itself on failure."""
+    url = f"http://{ip}:1400/DeviceProperties/Control"
+    try:
+        resp = requests.post(url, data=_ZONE_SOAP_BODY, headers=_ZONE_SOAP_HEADERS, timeout=2)
+        root = ET.fromstring(resp.text)
+        ns_soap = "http://schemas.xmlsoap.org/soap/envelope/"
+        ns_dp = "urn:schemas-upnp-org:service:DeviceProperties:1"
+        info = root.find(f"{{{ns_soap}}}Body/{{{ns_dp}}}GetZoneAttributesResponse")
+        if info is not None:
+            return info.findtext("CurrentZoneName", ip).strip()
+    except Exception:
+        pass
+    return ip
+
+
+def get_speakers(ips: list[str]) -> list[dict]:
+    """Return [{ip, name, playing}] for all IPs, fetched in parallel."""
+    def _probe(ip):
+        name = get_zone_name(ip)
+        try:
+            track = get_current_track(ip)
+            playing = bool(track["title"])
+        except SonosUnavailableError:
+            playing = False
+        return {"ip": ip, "name": name, "playing": playing}
+
+    with ThreadPoolExecutor(max_workers=len(ips)) as pool:
+        return sorted(pool.map(_probe, ips), key=lambda s: s["name"])
 
 
 def find_playing(ips: list[str]) -> dict:

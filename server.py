@@ -4,71 +4,88 @@ import queue
 import threading
 import time
 
-from flask import Flask, Response, stream_with_context
+from flask import Flask, Response, jsonify, request, stream_with_context
 
 from lyrics import fetch_lyrics
-from sonos import SonosUnavailableError, find_playing, get_current_track
+from sonos import SonosUnavailableError, find_playing, get_current_track, get_speakers
 
 
 def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float = 0.0) -> Flask:
     app = Flask(__name__, static_folder="static")
 
-    # Shared state
-    _state = {"track": None, "lyrics": []}
-    _clients: list[queue.SimpleQueue] = []
-    _lock = threading.Lock()
-    _has_client = threading.Event()
+    ips = [ip.strip() for ip in sonos_ip.split(",") if ip.strip()]
 
-    def _broadcast(event: str, data: dict):
+    # Per-speaker poll threads and client queues: {ip: {clients, lock, has_client, state}}
+    _speakers: dict[str, dict] = {}
+    _speakers_lock = threading.Lock()
+
+    def _make_speaker_state():
+        return {
+            "clients": [],
+            "lock": threading.Lock(),
+            "has_client": threading.Event(),
+            "state": {"track": None},
+        }
+
+    def _broadcast_to(sp: dict, event: str, data: dict):
         payload = f"event: {event}\ndata: {json.dumps(data)}\n\n"
-        with _lock:
-            for q in list(_clients):
+        with sp["lock"]:
+            for q in list(sp["clients"]):
                 q.put(payload)
 
-    ips = [ip.strip() for ip in sonos_ip.split(",") if ip.strip()]
-    _get_track = (lambda: find_playing(ips)) if len(ips) > 1 else (lambda: get_current_track(ips[0]))
-
-    def _poll():
+    def _poll_speaker(ip: str):
+        sp = _speakers[ip]
         if initial_delay:
             time.sleep(initial_delay)
         while True:
-            # Wait until at least one client is connected before polling
-            _has_client.wait()
+            sp["has_client"].wait()
             try:
-                track = _get_track()
-                prev = _state["track"]
+                track = get_current_track(ip)
+                prev = sp["state"]["track"]
                 if prev is None or track["title"] != prev["title"] or track["artist"] != prev["artist"]:
-                    lyrics = fetch_lyrics(track["artist"], track["title"])
-                    _state["track"] = track
-                    _state["lyrics"] = lyrics
-                    _broadcast("track_change", {
+                    lyrics = fetch_lyrics(track["artist"], track["title"]) if track["title"] else []
+                    sp["state"]["track"] = track
+                    _broadcast_to(sp, "track_change", {
                         "title": track["title"],
                         "artist": track["artist"],
                         "album": track["album"],
                         "lyrics": lyrics,
                     })
                 else:
-                    _broadcast("position", {"position_ms": track["position_ms"]})
+                    _broadcast_to(sp, "position", {"position_ms": track["position_ms"]})
             except SonosUnavailableError:
-                _state["track"] = None
-                _broadcast("waiting", {})
+                sp["state"]["track"] = None
+                _broadcast_to(sp, "waiting", {})
             except Exception:
-                logging.exception("Unexpected error in poll loop")
+                logging.exception("Unexpected error polling %s", ip)
             time.sleep(poll_interval)
 
-    t = threading.Thread(target=_poll, daemon=True)
-    t.start()
+    # Start a poll thread for each speaker
+    for ip in ips:
+        _speakers[ip] = _make_speaker_state()
+        t = threading.Thread(target=_poll_speaker, args=(ip,), daemon=True)
+        t.start()
 
     @app.get("/")
     def index():
         return app.send_static_file("index.html")
 
+    @app.get("/speakers")
+    def speakers_list():
+        return jsonify(get_speakers(ips))
+
     @app.get("/stream")
     def stream():
+        ip = request.args.get("ip")
+        if ip not in _speakers:
+            # Fall back to auto-detect: use first speaker that's playing, or first speaker
+            ip = ips[0]
+
+        sp = _speakers[ip]
         q: queue.SimpleQueue = queue.SimpleQueue()
-        with _lock:
-            _clients.append(q)
-        _has_client.set()
+        with sp["lock"]:
+            sp["clients"].append(q)
+        sp["has_client"].set()
 
         def generate():
             try:
@@ -78,10 +95,10 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                     except queue.Empty:
                         yield ": keepalive\n\n"
             finally:
-                with _lock:
-                    _clients.remove(q)
-                    if not _clients:
-                        _has_client.clear()
+                with sp["lock"]:
+                    sp["clients"].remove(q)
+                    if not sp["clients"]:
+                        sp["has_client"].clear()
 
         return Response(
             stream_with_context(generate()),

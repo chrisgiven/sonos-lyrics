@@ -20,13 +20,30 @@
     top: 0;
     background: #0d0d0ddd;
     backdrop-filter: blur(12px);
-    padding: 16px 20px 12px;
+    padding: 12px 16px 10px;
     border-bottom: 1px solid #1a1a1a;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
+  #meta-text { flex: 1; min-width: 0; }
   #title { font-size: 1.05rem; font-weight: 600; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #artist { font-size: 0.85rem; color: #666; margin-top: 2px; }
+
+  #change-btn {
+    flex-shrink: 0;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #888;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #change-btn:active { background: #2a2a2a; }
 
   #lyrics {
     padding: 40vh 20px;
@@ -70,16 +87,70 @@
     0%, 100% { opacity: 0.3; transform: scale(0.8); }
     50% { opacity: 1; transform: scale(1.2); }
   }
+
+  /* Speaker picker overlay */
+  #picker {
+    position: fixed; inset: 0;
+    background: #0d0d0d;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    padding: 48px 24px 24px;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  #picker h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #eee;
+    margin-bottom: 8px;
+  }
+
+  .speaker-btn {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s;
+  }
+  .speaker-btn:active { background: #242424; }
+  .speaker-btn.playing { border-color: #3a3a3a; }
+
+  .speaker-name { font-size: 1rem; color: #ddd; }
+  .speaker-status { font-size: 0.75rem; color: #555; margin-top: 3px; }
+  .playing-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4caf50; flex-shrink: 0;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .idle-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #333; flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
 
-<div id="meta" style="display:none">
-  <div id="title"></div>
-  <div id="artist"></div>
+<!-- Speaker picker (shown on load and when "Change" tapped) -->
+<div id="picker">
+  <h2>Choose a speaker</h2>
 </div>
 
-<div id="status">
+<div id="meta" style="display:none">
+  <div id="meta-text">
+    <div id="title"></div>
+    <div id="artist"></div>
+  </div>
+  <button id="change-btn" onclick="showPicker()">Change</button>
+</div>
+
+<div id="status" style="display:none">
   <div class="dot"></div>
   <span id="status-text">Connecting…</span>
 </div>
@@ -93,11 +164,89 @@
   const statusEl = document.getElementById("status");
   const statusTextEl = document.getElementById("status-text");
   const lyricsEl = document.getElementById("lyrics");
+  const pickerEl = document.getElementById("picker");
 
-  let lines = [];        // [{time_ms, text}]
+  let lines = [];
   let activeIdx = -1;
-  let positionMs = 0;
   let rafId = null;
+  let lastServerMs = 0;
+  let lastServerTimestamp = 0;
+  let es = null;
+  let selectedIp = null;
+
+  // ── Speaker picker ──────────────────────────────────────
+
+  async function showPicker() {
+    pickerEl.style.display = "flex";
+    pickerEl.innerHTML = "<h2>Choose a speaker</h2>";
+
+    let speakers;
+    try {
+      const r = await fetch("/speakers");
+      speakers = await r.json();
+    } catch {
+      pickerEl.innerHTML += '<p style="color:#555;font-size:.9rem">Could not load speakers</p>';
+      return;
+    }
+
+    speakers.forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "speaker-btn" + (s.playing ? " playing" : "");
+      btn.innerHTML = `
+        <div class="${s.playing ? "playing-dot" : "idle-dot"}"></div>
+        <div>
+          <div class="speaker-name">${s.name}</div>
+          <div class="speaker-status">${s.playing ? "Playing" : "Idle"}</div>
+        </div>`;
+      btn.onclick = () => selectSpeaker(s.ip, s.name);
+      pickerEl.appendChild(btn);
+    });
+  }
+
+  function selectSpeaker(ip, name) {
+    selectedIp = ip;
+    pickerEl.style.display = "none";
+    connectStream(ip);
+  }
+
+  // ── SSE stream ──────────────────────────────────────────
+
+  function connectStream(ip) {
+    if (es) { es.close(); es = null; }
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+
+    lines = []; activeIdx = -1; lastServerMs = 0;
+    showStatus("Connecting…");
+
+    es = new EventSource(`/stream?ip=${encodeURIComponent(ip)}`);
+
+    es.addEventListener("track_change", e => {
+      const data = JSON.parse(e.data);
+      renderTrack(data);
+      lastServerMs = 0;
+      lastServerTimestamp = Date.now();
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    });
+
+    es.addEventListener("position", e => {
+      const data = JSON.parse(e.data);
+      lastServerMs = data.position_ms;
+      lastServerTimestamp = Date.now();
+      if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
+    });
+
+    es.addEventListener("waiting", () => {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      showStatus("Waiting for Sonos…");
+    });
+
+    es.onerror = () => {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      showStatus("Reconnecting…");
+    };
+  }
+
+  // ── Display helpers ─────────────────────────────────────
 
   function showStatus(msg) {
     metaEl.style.display = "none";
@@ -112,13 +261,13 @@
     lines = data.lyrics || [];
     activeIdx = -1;
 
-    metaEl.style.display = "block";
+    metaEl.style.display = "flex";
     statusEl.style.display = "none";
 
     if (lines.length === 0) {
       lyricsEl.style.display = "none";
       showStatus("No lyrics available");
-      metaEl.style.display = "block";
+      metaEl.style.display = "flex";
       statusEl.style.display = "flex";
       return;
     }
@@ -136,66 +285,28 @@
 
   function updateActive(pMs) {
     if (lines.length === 0) return;
-
-    // Binary search for last line with time_ms <= pMs
     let lo = 0, hi = lines.length - 1, idx = -1;
     while (lo <= hi) {
       const mid = (lo + hi) >> 1;
       if (lines[mid].time_ms <= pMs) { idx = mid; lo = mid + 1; }
       else hi = mid - 1;
     }
-
     if (idx === activeIdx) return;
-    if (activeIdx >= 0) {
-      document.getElementById(`line-${activeIdx}`)?.classList.remove("active");
-    }
+    if (activeIdx >= 0) document.getElementById(`line-${activeIdx}`)?.classList.remove("active");
     activeIdx = idx;
     if (activeIdx >= 0) {
       const el = document.getElementById(`line-${activeIdx}`);
-      if (el) {
-        el.classList.add("active");
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
+      if (el) { el.classList.add("active"); el.scrollIntoView({ block: "center", behavior: "smooth" }); }
     }
   }
 
-  // Smooth position interpolation between server ticks
-  let lastServerMs = 0;
-  let lastServerTimestamp = 0;
-
   function tick() {
-    const elapsed = Date.now() - lastServerTimestamp;
-    const interpolated = lastServerMs + elapsed;
-    updateActive(interpolated);
+    updateActive(lastServerMs + (Date.now() - lastServerTimestamp));
     rafId = requestAnimationFrame(tick);
   }
 
-  const es = new EventSource("/stream");
-
-  es.addEventListener("track_change", e => {
-    const data = JSON.parse(e.data);
-    renderTrack(data);
-    lastServerMs = 0;
-    lastServerTimestamp = Date.now();
-    if (!rafId) rafId = requestAnimationFrame(tick);
-  });
-
-  es.addEventListener("position", e => {
-    const data = JSON.parse(e.data);
-    lastServerMs = data.position_ms;
-    lastServerTimestamp = Date.now();
-    if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
-  });
-
-  es.addEventListener("waiting", () => {
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    showStatus("Waiting for Sonos…");
-  });
-
-  es.onerror = () => {
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    showStatus("Reconnecting…");
-  };
+  // ── Boot ────────────────────────────────────────────────
+  showPicker();
 </script>
 </body>
 </html>
