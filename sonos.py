@@ -27,9 +27,13 @@ def get_current_track(ip: str) -> dict:
         raise SonosUnavailableError(str(e)) from e
 
     root = ET.fromstring(resp.text)
+    try:
+        position_ms = _parse_reltime(root.findtext("reltime", "0:00"))
+    except (ValueError, IndexError):
+        position_ms = 0
     return {
         "title": root.findtext("title", "").strip(),
         "artist": root.findtext("artist", "").strip(),
         "album": root.findtext("album", "").strip(),
-        "position_ms": _parse_reltime(root.findtext("reltime", "0:00")),
+        "position_ms": position_ms,
     }
