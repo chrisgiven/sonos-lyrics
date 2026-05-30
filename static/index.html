@@ -123,9 +123,14 @@
       return;
     }
 
-    lyricsEl.innerHTML = lines
-      .map((l, i) => `<div class="line" id="line-${i}">${l.text || "&nbsp;"}</div>`)
-      .join("");
+    lyricsEl.innerHTML = "";
+    lines.forEach((l, i) => {
+      const div = document.createElement("div");
+      div.className = "line";
+      div.id = `line-${i}`;
+      div.textContent = l.text || " ";
+      lyricsEl.appendChild(div);
+    });
     lyricsEl.style.display = "flex";
   }
 
@@ -179,6 +184,7 @@
     const data = JSON.parse(e.data);
     lastServerMs = data.position_ms;
     lastServerTimestamp = Date.now();
+    if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
   });
 
   es.addEventListener("waiting", () => {
@@ -186,7 +192,10 @@
     showStatus("Waiting for Sonos…");
   });
 
-  es.onerror = () => showStatus("Reconnecting…");
+  es.onerror = () => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    showStatus("Reconnecting…");
+  };
 </script>
 </body>
 </html>
