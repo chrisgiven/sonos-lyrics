@@ -44,7 +44,7 @@ def _parse_metadata(raw_metadata: str) -> tuple[str, str, str]:
         return "", "", ""
 
     try:
-        root = ET.fromstring(html.unescape(raw_metadata))
+        root = ET.fromstring(raw_metadata)
         ns = {
             "dc": "http://purl.org/dc/elements/1.1/",
             "upnp": "urn:schemas-upnp-org:metadata-1-0/upnp/",
