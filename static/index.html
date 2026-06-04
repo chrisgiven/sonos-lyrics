@@ -8,196 +8,305 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #0d0d0d;
-    color: #888;
+    background: #0a0a0a;
+    color: #fff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     min-height: 100dvh;
     overflow-x: hidden;
   }
 
+  /* ── Blurred background art ── */
+  #bg {
+    position: fixed; inset: 0; z-index: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(60px) brightness(0.35) saturate(1.8);
+    transform: scale(1.1);
+    transition: background-image 1.2s ease;
+  }
+  #bg-overlay {
+    position: fixed; inset: 0; z-index: 1;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.5) 100%);
+  }
+
+  /* ── Sticky header ── */
   #meta {
-    position: sticky;
-    top: 0;
-    background: #0d0d0ddd;
-    backdrop-filter: blur(12px);
-    padding: 12px 16px 10px;
-    border-bottom: 1px solid #1a1a1a;
-    z-index: 10;
+    position: sticky; top: 0; z-index: 20;
+    padding: env(safe-area-inset-top, 12px) 16px 12px;
+    padding-top: max(env(safe-area-inset-top), 12px);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  #art-thumb {
+    width: 44px; height: 44px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    background: #1a1a1a;
+    display: none;
   }
 
   #meta-text { flex: 1; min-width: 0; }
-  #title { font-size: 1.05rem; font-weight: 600; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #artist { font-size: 0.85rem; color: #666; margin-top: 2px; }
+  #title {
+    font-size: 0.95rem; font-weight: 700;
+    color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
+  #artist {
+    font-size: 0.8rem; color: rgba(255,255,255,0.6);
+    margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
 
   #change-btn {
     flex-shrink: 0;
-    background: #1e1e1e;
-    border: 1px solid #333;
-    color: #888;
-    font-size: 0.75rem;
-    padding: 5px 10px;
-    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.8);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
     cursor: pointer;
-    white-space: nowrap;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(10px);
+    transition: background 0.15s;
   }
-  #change-btn:active { background: #2a2a2a; }
+  #change-btn:active { background: rgba(255,255,255,0.22); }
 
+  /* ── Lyrics ── */
   #lyrics {
-    padding: 40vh 20px;
+    position: relative; z-index: 10;
+    padding: 35vh 24px 45vh;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
   }
 
   .line {
-    font-size: 1.4rem;
-    line-height: 1.45;
-    color: #3a3a3a;
-    transition: color 0.25s ease, transform 0.25s ease;
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: rgba(255,255,255,0.22);
+    transition: color 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
     cursor: default;
+    letter-spacing: -0.02em;
   }
 
   .line.active {
     color: #ffffff;
-    transform: scale(1.03);
+    transform: scale(1.04);
     transform-origin: left center;
   }
 
+  .line.recent {
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* ── Status screen ── */
   #status {
+    position: relative; z-index: 10;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 80dvh;
+    gap: 16px;
+  }
+
+  #status-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #status-icon svg { width: 26px; height: 26px; fill: rgba(255,255,255,0.6); }
+
+  #status-text {
     font-size: 1rem;
-    color: #555;
-    gap: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: -0.01em;
+  }
+
+  #status-sub {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.35);
   }
 
   .dot {
     width: 8px; height: 8px;
-    background: #555;
+    background: rgba(255,255,255,0.5);
     border-radius: 50%;
     animation: pulse 1.4s ease-in-out infinite;
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 0.3; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.2); }
+    0%, 100% { opacity: 0.2; transform: scale(0.7); }
+    50% { opacity: 1; transform: scale(1.3); }
   }
 
-  /* Speaker picker overlay */
+  /* ── Speaker picker ── */
   #picker {
-    position: fixed; inset: 0;
-    background: #0d0d0d;
-    z-index: 100;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(30px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
     display: flex;
     flex-direction: column;
-    padding: 48px 24px 24px;
-    gap: 12px;
+    padding: max(env(safe-area-inset-top), 52px) 20px 32px;
+    gap: 10px;
     overflow-y: auto;
   }
 
   #picker h2 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #eee;
-    margin-bottom: 8px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+
+  #picker-sub {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: -4px;
+    margin-bottom: 10px;
   }
 
   .speaker-btn {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    border-radius: 12px;
-    padding: 16px 18px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 14px 16px;
     cursor: pointer;
     text-align: left;
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: background 0.15s;
+    gap: 14px;
+    transition: background 0.15s, transform 0.1s;
   }
-  .speaker-btn:active { background: #242424; }
-  .speaker-btn.playing { border-color: #3a3a3a; }
+  .speaker-btn:active { background: rgba(255,255,255,0.14); transform: scale(0.98); }
+  .speaker-btn.playing { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); }
 
-  .speaker-name { font-size: 1rem; color: #ddd; }
-  .speaker-status { font-size: 0.75rem; color: #555; margin-top: 3px; }
-  .playing-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #4caf50; flex-shrink: 0;
-    animation: pulse 1.4s ease-in-out infinite;
+  .speaker-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
-  .idle-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #333; flex-shrink: 0;
+  .speaker-icon svg { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); }
+
+  .speaker-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .speaker-status {
+    font-size: 0.73rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2px;
+  }
+  .speaker-btn.playing .speaker-status { color: #4ade80; }
+
+  .playing-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 1.4s ease-in-out infinite;
+    margin-left: auto; flex-shrink: 0;
   }
 </style>
 </head>
 <body>
 
-<!-- Speaker picker (shown on load and when "Change" tapped) -->
+<!-- Blurred background -->
+<div id="bg"></div>
+<div id="bg-overlay"></div>
+
+<!-- Speaker picker -->
 <div id="picker">
-  <h2>Choose a speaker</h2>
+  <h2>Speakers</h2>
+  <p id="picker-sub">Choose a room to follow</p>
 </div>
 
+<!-- Now playing header -->
 <div id="meta" style="display:none">
+  <img id="art-thumb" src="" alt="" onerror="this.style.display='none'" onload="this.style.display='block'">
   <div id="meta-text">
     <div id="title"></div>
     <div id="artist"></div>
   </div>
-  <button id="change-btn" onclick="showPicker()">Change</button>
+  <button id="change-btn" onclick="showPicker()">Rooms</button>
 </div>
 
+<!-- Status -->
 <div id="status" style="display:none">
-  <div class="dot"></div>
-  <span id="status-text">Connecting…</span>
+  <div id="status-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+  </div>
+  <div id="status-text">Connecting…</div>
+  <div id="status-sub"></div>
 </div>
 
+<!-- Lyrics -->
 <div id="lyrics" style="display:none"></div>
 
 <script>
   const metaEl = document.getElementById("meta");
   const titleEl = document.getElementById("title");
   const artistEl = document.getElementById("artist");
+  const artThumb = document.getElementById("art-thumb");
+  const bgEl = document.getElementById("bg");
   const statusEl = document.getElementById("status");
   const statusTextEl = document.getElementById("status-text");
+  const statusSubEl = document.getElementById("status-sub");
+  const statusIconEl = document.getElementById("status-icon");
   const lyricsEl = document.getElementById("lyrics");
   const pickerEl = document.getElementById("picker");
 
-  let lines = [];
-  let activeIdx = -1;
-  let rafId = null;
-  let lastServerMs = 0;
-  let lastServerTimestamp = 0;
-  let es = null;
-  let selectedIp = null;
+  let lines = [], activeIdx = -1, rafId = null;
+  let lastServerMs = 0, lastServerTimestamp = 0;
+  let es = null, selectedIp = null;
 
-  // ── Speaker picker ──────────────────────────────────────
+  // ── Speaker picker ──────────────────────────────────
 
   async function showPicker() {
+    if (es) { es.close(); es = null; }
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     pickerEl.style.display = "flex";
-    pickerEl.innerHTML = "<h2>Choose a speaker</h2>";
+    pickerEl.innerHTML = '<h2>Speakers</h2><p id="picker-sub">Choose a room to follow</p>';
 
     let speakers;
     try {
       const r = await fetch("/speakers");
       speakers = await r.json();
     } catch {
-      pickerEl.innerHTML += '<p style="color:#555;font-size:.9rem">Could not load speakers</p>';
+      pickerEl.innerHTML += '<p style="color:rgba(255,255,255,.4);font-size:.9rem;padding:12px 0">Could not load speakers</p>';
       return;
     }
 
     speakers.forEach(s => {
       const btn = document.createElement("button");
       btn.className = "speaker-btn" + (s.playing ? " playing" : "");
+      const speakerSvg = s.playing
+        ? `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>`
+        : `<svg viewBox="0 0 24 24"><path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/></svg>`;
       btn.innerHTML = `
-        <div class="${s.playing ? "playing-dot" : "idle-dot"}"></div>
+        <div class="speaker-icon">${speakerSvg}</div>
         <div>
           <div class="speaker-name">${s.name}</div>
-          <div class="speaker-status">${s.playing ? "Playing" : "Idle"}</div>
-        </div>`;
+          <div class="speaker-status">${s.playing ? "Now playing" : "Idle"}</div>
+        </div>
+        ${s.playing ? '<div class="playing-dot"></div>' : ''}`;
       btn.onclick = () => selectSpeaker(s.ip, s.name);
       pickerEl.appendChild(btn);
     });
@@ -209,14 +318,12 @@
     connectStream(ip);
   }
 
-  // ── SSE stream ──────────────────────────────────────────
+  // ── SSE stream ───────────────────────────────────────
 
   function connectStream(ip) {
     if (es) { es.close(); es = null; }
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-
     lines = []; activeIdx = -1; lastServerMs = 0;
-    showStatus("Connecting…");
+    showStatus("note", "Connecting…", "");
 
     es = new EventSource(`/stream?ip=${encodeURIComponent(ip)}`);
 
@@ -237,22 +344,38 @@
 
     es.addEventListener("waiting", () => {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-      showStatus("Waiting for Sonos…");
+      showStatus("mute", "Nothing playing", "Start music on this speaker");
     });
 
     es.onerror = () => {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-      showStatus("Reconnecting…");
+      showStatus("warn", "Reconnecting…", "");
     };
   }
 
-  // ── Display helpers ─────────────────────────────────────
+  // ── Display ──────────────────────────────────────────
 
-  function showStatus(msg) {
+  const ICONS = {
+    note: `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`,
+    mute: `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`,
+    warn: `<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`,
+  };
+
+  function showStatus(iconKey, text, sub) {
     metaEl.style.display = "none";
     lyricsEl.style.display = "none";
     statusEl.style.display = "flex";
-    statusTextEl.textContent = msg;
+    statusIconEl.innerHTML = ICONS[iconKey] || ICONS.note;
+    statusTextEl.textContent = text;
+    statusSubEl.textContent = sub;
+  }
+
+  function setBackground(url) {
+    if (url) {
+      bgEl.style.backgroundImage = `url('${url}')`;
+    } else {
+      bgEl.style.backgroundImage = "none";
+    }
   }
 
   function renderTrack(data) {
@@ -261,14 +384,25 @@
     lines = data.lyrics || [];
     activeIdx = -1;
 
+    // Album art
+    if (data.art_url) {
+      artThumb.src = data.art_url;
+      // onload/onerror on the img handle show/hide
+      setBackground(data.art_url);
+      bgEl.style.display = "block";
+    } else {
+      artThumb.style.display = "none";
+      bgEl.style.display = "none";
+      setBackground(null);
+    }
+
     metaEl.style.display = "flex";
     statusEl.style.display = "none";
 
     if (lines.length === 0) {
       lyricsEl.style.display = "none";
-      showStatus("No lyrics available");
+      showStatus("note", data.title || "Playing", "No lyrics available");
       metaEl.style.display = "flex";
-      statusEl.style.display = "flex";
       return;
     }
 
@@ -292,11 +426,26 @@
       else hi = mid - 1;
     }
     if (idx === activeIdx) return;
-    if (activeIdx >= 0) document.getElementById(`line-${activeIdx}`)?.classList.remove("active");
+
+    // Remove previous styles
+    if (activeIdx >= 0) {
+      const prev = document.getElementById(`line-${activeIdx}`);
+      if (prev) { prev.classList.remove("active"); prev.classList.add("recent"); }
+    }
+    // Remove "recent" from older lines
+    if (activeIdx > 1) {
+      const older = document.getElementById(`line-${activeIdx - 1}`);
+      if (older) older.classList.remove("recent");
+    }
+
     activeIdx = idx;
     if (activeIdx >= 0) {
       const el = document.getElementById(`line-${activeIdx}`);
-      if (el) { el.classList.add("active"); el.scrollIntoView({ block: "center", behavior: "smooth" }); }
+      if (el) {
+        el.classList.add("active");
+        el.classList.remove("recent");
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
     }
   }
 
@@ -305,7 +454,7 @@
     rafId = requestAnimationFrame(tick);
   }
 
-  // ── Boot ────────────────────────────────────────────────
+  // ── Boot ─────────────────────────────────────────────
   showPicker();
 </script>
 </body>

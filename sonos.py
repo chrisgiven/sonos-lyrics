@@ -52,10 +52,10 @@ def _parse_reltime(reltime: str) -> int:
     return (h * 3600 + m * 60 + s) * 1000
 
 
-def _parse_metadata(raw_metadata: str) -> tuple[str, str, str]:
-    """Extract (title, artist, album) from DIDL-Lite XML metadata string."""
+def _parse_metadata(raw_metadata: str) -> tuple[str, str, str, str]:
+    """Extract (title, artist, album, art_url) from DIDL-Lite XML metadata string."""
     if not raw_metadata or raw_metadata == "NOT_IMPLEMENTED":
-        return "", "", ""
+        return "", "", "", ""
 
     try:
         root = ET.fromstring(raw_metadata)
@@ -67,27 +67,28 @@ def _parse_metadata(raw_metadata: str) -> tuple[str, str, str]:
         }
         item = root.find("didl:item", ns)
         if item is None:
-            return "", "", ""
+            return "", "", "", ""
 
         # Standard track fields (Apple Music, local library, etc.)
         title = (item.findtext("dc:title", "", ns) or "").strip()
         artist = (item.findtext("dc:creator", "", ns) or "").strip()
         album = (item.findtext("upnp:album", "", ns) or "").strip()
+        art_url = (item.findtext("upnp:albumArtURI", "", ns) or "").strip()
 
         if title:
-            return title, artist, album
+            return title, artist, album, art_url
 
         # Radio/streaming fallback: r:streamContent pipe-delimited string
         stream = (item.findtext("r:streamContent", "", ns) or "").strip()
         if stream:
             m = _STREAM_RE.search(stream)
             if m:
-                return (m.group(1) or "").strip(), (m.group(2) or "").strip(), (m.group(3) or "").strip()
+                return (m.group(1) or "").strip(), (m.group(2) or "").strip(), (m.group(3) or "").strip(), art_url
 
     except ET.ParseError:
         pass
 
-    return "", "", ""
+    return "", "", "", ""
 
 
 def get_current_track(ip: str) -> dict:
@@ -109,14 +110,14 @@ def get_current_track(ip: str) -> dict:
 
         raw_meta = info.findtext("TrackMetaData", "")
         reltime = info.findtext("RelTime", "0:00:00")
-        title, artist, album = _parse_metadata(raw_meta)
+        title, artist, album, art_url = _parse_metadata(raw_meta)
 
         try:
             position_ms = _parse_reltime(reltime)
         except (ValueError, IndexError):
             position_ms = 0
 
-        return {"title": title, "artist": artist, "album": album, "position_ms": position_ms}
+        return {"title": title, "artist": artist, "album": album, "art_url": art_url, "position_ms": position_ms}
 
     except SonosUnavailableError:
         raise

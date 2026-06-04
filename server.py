@@ -6,7 +6,7 @@ import time
 
 from flask import Flask, Response, jsonify, request, stream_with_context
 
-from lyrics import fetch_lyrics
+from lyrics import fetch_album_art, fetch_lyrics
 from sonos import SonosUnavailableError, find_playing, get_current_track, get_speakers
 
 
@@ -44,11 +44,15 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                 prev = sp["state"]["track"]
                 if prev is None or track["title"] != prev["title"] or track["artist"] != prev["artist"]:
                     lyrics = fetch_lyrics(track["artist"], track["title"]) if track["title"] else []
+                    art_url = track.get("art_url", "")
+                    if not art_url and (track["artist"] or track["album"]):
+                        art_url = fetch_album_art(track["artist"], track["album"])
                     sp["state"]["track"] = track
                     _broadcast_to(sp, "track_change", {
                         "title": track["title"],
                         "artist": track["artist"],
                         "album": track["album"],
+                        "art_url": art_url,
                         "lyrics": lyrics,
                     })
                 else:

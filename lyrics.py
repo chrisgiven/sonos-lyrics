@@ -2,7 +2,11 @@ import re
 import requests
 
 _cache: dict = {}
+_art_cache: dict = {}
 _LRCLIB_URL = "https://lrclib.net/api/get"
+_MB_URL = "https://musicbrainz.org/ws/2/release/"
+_CAA_URL = "https://coverartarchive.org/release/"
+_MB_HEADERS = {"User-Agent": "SonosLyrics/1.0 (home-assistant)"}
 _LINE_RE = re.compile(r"\[(\d{2}):(\d{2})\.(\d{2,3})\]\s*(.*)")
 
 
@@ -21,6 +25,45 @@ def _parse_lrc(lrc_text: str) -> list[dict]:
         time_ms = (int(minutes) * 60 + int(seconds)) * 1000 + centis_int
         lines.append({"time_ms": time_ms, "text": text.strip()})
     return sorted(lines, key=lambda x: x["time_ms"])
+
+
+def fetch_album_art(artist: str, album: str) -> str:
+    """Look up album art from MusicBrainz + Cover Art Archive. Returns URL or ''."""
+    if not artist and not album:
+        return ""
+    key = (artist.lower(), album.lower())
+    if key in _art_cache:
+        return _art_cache[key]
+
+    try:
+        query = f"artist:{artist} AND release:{album}" if album else f"artist:{artist}"
+        resp = requests.get(
+            _MB_URL,
+            params={"query": query, "fmt": "json", "limit": 1},
+            headers=_MB_HEADERS,
+            timeout=5,
+        )
+        resp.raise_for_status()
+        releases = resp.json().get("releases", [])
+        if not releases:
+            _art_cache[key] = ""
+            return ""
+
+        release_id = releases[0]["id"]
+        art_resp = requests.get(
+            f"{_CAA_URL}{release_id}",
+            headers=_MB_HEADERS,
+            timeout=5,
+            allow_redirects=True,
+        )
+        art_resp.raise_for_status()
+        images = art_resp.json().get("images", [])
+        url = images[0]["thumbnails"].get("large", images[0].get("image", "")) if images else ""
+        _art_cache[key] = url
+        return url
+    except Exception:
+        _art_cache[key] = ""
+        return ""
 
 
 def fetch_lyrics(artist: str, title: str) -> list[dict]:
