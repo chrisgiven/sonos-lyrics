@@ -148,9 +148,13 @@ def get_speakers(ips: list[str]) -> list[dict]:
         try:
             track = get_current_track(ip)
             playing = bool(track["title"])
+            title = track["title"] if playing else ""
+            artist = track["artist"] if playing else ""
         except SonosUnavailableError:
             playing = False
-        return {"ip": ip, "name": name, "playing": playing}
+            title = ""
+            artist = ""
+        return {"ip": ip, "name": name, "playing": playing, "title": title, "artist": artist}
 
     with ThreadPoolExecutor(max_workers=len(ips)) as pool:
         return sorted(pool.map(_probe, ips), key=lambda s: s["name"])

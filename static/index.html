@@ -72,14 +72,27 @@
     color: rgba(255,255,255,0.8);
     font-size: 0.72rem;
     font-weight: 600;
-    padding: 6px 12px;
+    padding: 6px 10px 6px 8px;
     border-radius: 20px;
     cursor: pointer;
     letter-spacing: 0.02em;
     backdrop-filter: blur(10px);
     transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
   #change-btn:active { background: rgba(255,255,255,0.22); }
+  #change-btn svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.7); flex-shrink: 0; }
+
+  #room-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
 
   /* ── Lyrics ── */
   #lyrics {
@@ -205,11 +218,13 @@
   }
   .speaker-icon svg { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); }
 
+  .speaker-info { flex: 1; min-width: 0; }
   .speaker-name {
     font-size: 0.95rem;
     font-weight: 600;
     color: #fff;
     letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .speaker-status {
     font-size: 0.73rem;
@@ -217,6 +232,14 @@
     margin-top: 2px;
   }
   .speaker-btn.playing .speaker-status { color: #4ade80; }
+  .speaker-track {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .speaker-track .track-title { font-weight: 600; color: rgba(255,255,255,0.85); }
+  .speaker-track .track-sep { margin: 0 3px; color: rgba(255,255,255,0.25); }
 
   .playing-dot {
     width: 7px; height: 7px; border-radius: 50%;
@@ -242,10 +265,14 @@
 <div id="meta" style="display:none">
   <img id="art-thumb" src="" alt="" onerror="this.style.display='none'" onload="this.style.display='block'">
   <div id="meta-text">
+    <div id="room-label"></div>
     <div id="title"></div>
     <div id="artist"></div>
   </div>
-  <button id="change-btn" onclick="showPicker()">Rooms</button>
+  <button id="change-btn" onclick="showPicker()">
+    <svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+    Rooms
+  </button>
 </div>
 
 <!-- Status -->
@@ -273,9 +300,11 @@
   const lyricsEl = document.getElementById("lyrics");
   const pickerEl = document.getElementById("picker");
 
+  const roomLabelEl = document.getElementById("room-label");
+
   let lines = [], activeIdx = -1, rafId = null;
   let lastServerMs = 0, lastServerTimestamp = 0;
-  let es = null, selectedIp = null;
+  let es = null, selectedIp = null, selectedName = null;
 
   // ── Speaker picker ──────────────────────────────────
 
@@ -300,11 +329,19 @@
       const speakerSvg = s.playing
         ? `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>`
         : `<svg viewBox="0 0 24 24"><path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/></svg>`;
+      let trackHtml = '';
+      if (s.playing && (s.title || s.artist)) {
+        const titleSpan = s.title ? `<span class="track-title">${s.title}</span>` : '';
+        const sep = (s.title && s.artist) ? `<span class="track-sep">·</span>` : '';
+        const artistSpan = s.artist ? `<span>${s.artist}</span>` : '';
+        trackHtml = `<div class="speaker-track">${titleSpan}${sep}${artistSpan}</div>`;
+      }
       btn.innerHTML = `
         <div class="speaker-icon">${speakerSvg}</div>
-        <div>
+        <div class="speaker-info">
           <div class="speaker-name">${s.name}</div>
           <div class="speaker-status">${s.playing ? "Now playing" : "Idle"}</div>
+          ${trackHtml}
         </div>
         ${s.playing ? '<div class="playing-dot"></div>' : ''}`;
       btn.onclick = () => selectSpeaker(s.ip, s.name);
@@ -314,7 +351,9 @@
 
   function selectSpeaker(ip, name) {
     selectedIp = ip;
+    selectedName = name;
     pickerEl.style.display = "none";
+    roomLabelEl.textContent = name;
     connectStream(ip);
   }
 
