@@ -2,6 +2,7 @@ import pytest
 import json
 from unittest.mock import patch, MagicMock
 from server import create_app
+from sonos import SonosUnavailableError
 
 
 @pytest.fixture
@@ -44,3 +45,50 @@ def test_stream_emits_track_change_on_new_track(client):
     data = json.loads(chunk.split("data: ", 1)[1])
     assert data["title"] == "Yesterday"
     assert data["lyrics"][0]["text"] == "Yesterday"
+
+
+def test_control_play_calls_transport_command(client):
+    with patch("server.transport_command") as mock_cmd:
+        resp = client.post("/control?ip=192.168.1.10",
+                           json={"action": "play"},
+                           content_type="application/json")
+    assert resp.status_code == 204
+    mock_cmd.assert_called_once_with("192.168.1.10", "Play")
+
+
+def test_control_returns_400_for_invalid_action(client):
+    resp = client.post("/control?ip=192.168.1.10",
+                       json={"action": "rewind"},
+                       content_type="application/json")
+    assert resp.status_code == 400
+
+
+def test_control_returns_503_when_speaker_unavailable(client):
+    with patch("server.transport_command", side_effect=SonosUnavailableError("off")):
+        resp = client.post("/control?ip=192.168.1.10",
+                           json={"action": "pause"},
+                           content_type="application/json")
+    assert resp.status_code == 503
+
+
+def test_volume_sets_level(client):
+    with patch("server.set_volume") as mock_vol:
+        resp = client.post("/volume?ip=192.168.1.10",
+                           json={"level": 42},
+                           content_type="application/json")
+    assert resp.status_code == 204
+    mock_vol.assert_called_once_with("192.168.1.10", 42)
+
+
+def test_volume_returns_400_for_out_of_range(client):
+    resp = client.post("/volume?ip=192.168.1.10",
+                       json={"level": 150},
+                       content_type="application/json")
+    assert resp.status_code == 400
+
+
+def test_volume_returns_400_for_non_integer(client):
+    resp = client.post("/volume?ip=192.168.1.10",
+                       json={"level": "loud"},
+                       content_type="application/json")
+    assert resp.status_code == 400

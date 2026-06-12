@@ -7,7 +7,7 @@ import time
 from flask import Flask, Response, jsonify, request, stream_with_context
 
 from lyrics import fetch_album_art, fetch_lyrics
-from sonos import SonosUnavailableError, find_playing, get_current_track, get_speakers
+from sonos import SonosUnavailableError, find_playing, get_current_track, get_speakers, get_volume, set_volume, transport_command
 
 
 def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float = 0.0) -> Flask:
@@ -47,6 +47,10 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                     art_url = track.get("art_url", "")
                     if not art_url and (track["artist"] or track["album"]):
                         art_url = fetch_album_art(track["artist"], track["album"])
+                    try:
+                        volume = get_volume(ip)
+                    except SonosUnavailableError:
+                        volume = None
                     sp["state"]["track"] = track
                     _broadcast_to(sp, "track_change", {
                         "title": track["title"],
@@ -54,6 +58,8 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                         "album": track["album"],
                         "art_url": art_url,
                         "lyrics": lyrics,
+                        "duration_ms": track.get("duration_ms", 0),
+                        "volume": volume,
                     })
                 else:
                     _broadcast_to(sp, "position", {"position_ms": track["position_ms"]})
@@ -109,6 +115,36 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             content_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
+
+    @app.post("/control")
+    def control():
+        ip = request.args.get("ip")
+        if ip not in _speakers:
+            return jsonify({"error": "unknown speaker"}), 400
+        data = request.get_json(silent=True) or {}
+        action = data.get("action", "")
+        if action not in ("play", "pause", "previous", "next"):
+            return jsonify({"error": "invalid action"}), 400
+        try:
+            transport_command(ip, action.capitalize())
+            return "", 204
+        except SonosUnavailableError as e:
+            return jsonify({"error": str(e)}), 503
+
+    @app.post("/volume")
+    def volume():
+        ip = request.args.get("ip")
+        if ip not in _speakers:
+            return jsonify({"error": "unknown speaker"}), 400
+        data = request.get_json(silent=True) or {}
+        level = data.get("level")
+        if not isinstance(level, int) or not 0 <= level <= 100:
+            return jsonify({"error": "level must be 0–100"}), 400
+        try:
+            set_volume(ip, level)
+            return "", 204
+        except SonosUnavailableError as e:
+            return jsonify({"error": str(e)}), 503
 
     return app
 
