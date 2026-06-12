@@ -97,7 +97,7 @@
   /* ── Lyrics ── */
   #lyrics {
     position: relative; z-index: 10;
-    padding: 35vh 24px 45vh;
+    padding: 35vh 24px calc(45vh + 80px);
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -247,6 +247,172 @@
     animation: pulse 1.4s ease-in-out infinite;
     margin-left: auto; flex-shrink: 0;
   }
+
+  /* ── Equalizer ── */
+  .eq {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .eq.playing { opacity: 1; }
+  .eq-bar {
+    width: 3px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 2px;
+    animation: eq-bounce 0.6s ease-in-out infinite alternate;
+  }
+  .eq-bar:nth-child(2) { animation-duration: 0.9s; }
+  .eq-bar:nth-child(3) { animation-duration: 0.75s; }
+  @keyframes eq-bounce {
+    0%   { height: 4px; }
+    100% { height: 14px; }
+  }
+
+  /* ── Progress bar ── */
+  #progress-wrap {
+    position: fixed;
+    bottom: calc(60px + env(safe-area-inset-bottom));
+    left: 0; right: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    pointer-events: none;
+  }
+  #progress-track {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%;
+    background: rgba(255,255,255,0.75);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.9s linear;
+  }
+  .time-label {
+    font-size: 0.62rem;
+    color: rgba(255,255,255,0.35);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    width: 30px;
+  }
+  #time-remaining { text-align: right; }
+
+  /* ── Player bar ── */
+  #player-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 30;
+    height: 60px;
+    padding: 0 16px;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  #player-bar.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Volume section */
+  #vol-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+  }
+  #mute-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  #mute-btn svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.55); }
+
+  #vol-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.15);
+    outline: none;
+    cursor: pointer;
+  }
+  #vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    cursor: pointer;
+  }
+  #vol-slider::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  #vol-pct {
+    position: absolute;
+    bottom: 22px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.7);
+    background: rgba(0,0,0,0.6);
+    padding: 2px 5px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* Transport */
+  #transport {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .ctrl-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .ctrl-btn:active { background: rgba(255,255,255,0.2); }
+  .ctrl-btn.tapped { opacity: 0.4; }
+  #prev-btn, #next-btn { width: 34px; height: 34px; }
+  #prev-btn svg, #next-btn svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.8); }
+  #play-btn { width: 42px; height: 42px; background: rgba(255,255,255,0.9); }
+  #play-btn svg { width: 18px; height: 18px; fill: #000; }
 </style>
 </head>
 <body>
@@ -264,6 +430,11 @@
 <!-- Now playing header -->
 <div id="meta" style="display:none">
   <img id="art-thumb" src="" alt="" onerror="this.style.display='none'" onload="this.style.display='block'">
+  <div class="eq" id="eq">
+    <div class="eq-bar"></div>
+    <div class="eq-bar"></div>
+    <div class="eq-bar"></div>
+  </div>
   <div id="meta-text">
     <div id="room-label"></div>
     <div id="title"></div>
@@ -287,6 +458,37 @@
 <!-- Lyrics -->
 <div id="lyrics" style="display:none"></div>
 
+<!-- Progress bar -->
+<div id="progress-wrap" style="display:none">
+  <span class="time-label" id="time-elapsed">0:00</span>
+  <div id="progress-track">
+    <div id="progress-fill"></div>
+  </div>
+  <span class="time-label" id="time-remaining">-0:00</span>
+</div>
+
+<!-- Player bar -->
+<div id="player-bar">
+  <div id="vol-section">
+    <button id="mute-btn" title="Mute">
+      <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+    </button>
+    <input type="range" id="vol-slider" min="0" max="100" value="50">
+    <span id="vol-pct"></span>
+  </div>
+  <div id="transport">
+    <button class="ctrl-btn" id="prev-btn" title="Previous">
+      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="play-btn" title="Play / Pause">
+      <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="next-btn" title="Next">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+  </div>
+</div>
+
 <script>
   const metaEl = document.getElementById("meta");
   const titleEl = document.getElementById("title");
@@ -299,18 +501,141 @@
   const statusIconEl = document.getElementById("status-icon");
   const lyricsEl = document.getElementById("lyrics");
   const pickerEl = document.getElementById("picker");
-
   const roomLabelEl = document.getElementById("room-label");
+
+  // Player bar elements
+  const playerBar = document.getElementById("player-bar");
+  const eqEl = document.getElementById("eq");
+  const volSlider = document.getElementById("vol-slider");
+  const volPctEl = document.getElementById("vol-pct");
+  const progressWrap = document.getElementById("progress-wrap");
+  const progressFill = document.getElementById("progress-fill");
+  const timeElapsedEl = document.getElementById("time-elapsed");
+  const timeRemainingEl = document.getElementById("time-remaining");
 
   let lines = [], activeIdx = -1, rafId = null;
   let lastServerMs = 0, lastServerTimestamp = 0;
   let es = null, selectedIp = null, selectedName = null;
 
-  // ── Speaker picker ──────────────────────────────────
+  // Playback state
+  let isPlaying = false;
+  let lastReceivedMs = -1;
+  let stalePosCount = 0;
+  let durationMs = 0;
+  let lastTimeLabelUpdate = 0;
+  let lastVolume = 50;
+  let volPctTimeout = null;
+
+  const PLAY_PATH = "M8 5v14l11-7z";
+  const PAUSE_PATH = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+  const VOL_ON_PATH = "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z";
+  const VOL_OFF_PATH = "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z";
+
+  // ── Helpers ──────────────────────────────────────────
+
+  function setPlaying(playing) {
+    isPlaying = playing;
+    document.getElementById("play-icon").querySelector("path").setAttribute("d", playing ? PAUSE_PATH : PLAY_PATH);
+    eqEl.classList.toggle("playing", playing);
+  }
+
+  function showPlayerBar() { playerBar.classList.add("visible"); }
+  function hidePlayerBar() {
+    playerBar.classList.remove("visible");
+    progressWrap.style.display = "none";
+  }
+
+  function updateVolIcon(level) {
+    document.getElementById("vol-icon").querySelector("path").setAttribute("d", level === 0 ? VOL_OFF_PATH : VOL_ON_PATH);
+  }
+
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  }
+
+  async function sendControl(action) {
+    if (!selectedIp) return;
+    await fetch(`/control?ip=${encodeURIComponent(selectedIp)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+  }
+
+  async function sendVolume(level) {
+    if (!selectedIp) return;
+    await fetch(`/volume?ip=${encodeURIComponent(selectedIp)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level }),
+    });
+  }
+
+  function tapFeedback(btn) {
+    btn.classList.add("tapped");
+    setTimeout(() => btn.classList.remove("tapped"), 300);
+  }
+
+  // ── Transport controls ───────────────────────────────
+
+  document.getElementById("prev-btn").addEventListener("click", function() {
+    tapFeedback(this);
+    sendControl("previous");
+  });
+
+  document.getElementById("play-btn").addEventListener("click", function() {
+    tapFeedback(this);
+    const action = isPlaying ? "pause" : "play";
+    setPlaying(!isPlaying);
+    sendControl(action);
+  });
+
+  document.getElementById("next-btn").addEventListener("click", function() {
+    tapFeedback(this);
+    sendControl("next");
+  });
+
+  // ── Volume controls ──────────────────────────────────
+
+  volSlider.addEventListener("input", function() {
+    const level = parseInt(this.value);
+    volPctEl.textContent = `${level}%`;
+    volPctEl.style.left = `${(level / 100) * (this.offsetWidth - 14) + 7}px`;
+    volPctEl.style.opacity = "1";
+    updateVolIcon(level);
+    clearTimeout(volPctTimeout);
+  });
+
+  volSlider.addEventListener("change", function() {
+    const level = parseInt(this.value);
+    lastVolume = level;
+    sendVolume(level);
+    volPctTimeout = setTimeout(() => { volPctEl.style.opacity = "0"; }, 1500);
+  });
+
+  document.getElementById("mute-btn").addEventListener("click", function() {
+    const current = parseInt(volSlider.value);
+    if (current > 0) {
+      lastVolume = current;
+      volSlider.value = 0;
+      updateVolIcon(0);
+      sendVolume(0);
+    } else {
+      volSlider.value = lastVolume;
+      updateVolIcon(lastVolume);
+      sendVolume(lastVolume);
+    }
+  });
+
+  // ── Speaker picker ───────────────────────────────────
 
   async function showPicker() {
     if (es) { es.close(); es = null; }
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    hidePlayerBar();
     pickerEl.style.display = "flex";
     pickerEl.innerHTML = '<h2>Speakers</h2><p id="picker-sub">Choose a room to follow</p>';
 
@@ -362,6 +687,8 @@
   function connectStream(ip) {
     if (es) { es.close(); es = null; }
     lines = []; activeIdx = -1; lastServerMs = 0;
+    lastReceivedMs = -1; stalePosCount = 0;
+    durationMs = 0;
     showStatus("note", "Connecting…", "");
 
     es = new EventSource(`/stream?ip=${encodeURIComponent(ip)}`);
@@ -376,6 +703,14 @@
 
     es.addEventListener("position", e => {
       const data = JSON.parse(e.data);
+      if (data.position_ms === lastReceivedMs) {
+        stalePosCount++;
+        if (stalePosCount >= 3) setPlaying(false);
+      } else {
+        stalePosCount = 0;
+        lastReceivedMs = data.position_ms;
+        setPlaying(true);
+      }
       lastServerMs = data.position_ms;
       lastServerTimestamp = Date.now();
       if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
@@ -383,6 +718,8 @@
 
     es.addEventListener("waiting", () => {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      setPlaying(false);
+      hidePlayerBar();
       showStatus("mute", "Nothing playing", "Start music on this speaker");
     });
 
@@ -401,6 +738,7 @@
   };
 
   function showStatus(iconKey, text, sub) {
+    hidePlayerBar();
     metaEl.style.display = "none";
     lyricsEl.style.display = "none";
     statusEl.style.display = "flex";
@@ -426,7 +764,6 @@
     // Album art
     if (data.art_url) {
       artThumb.src = data.art_url;
-      // onload/onerror on the img handle show/hide
       setBackground(data.art_url);
       bgEl.style.display = "block";
     } else {
@@ -436,12 +773,32 @@
     }
 
     metaEl.style.display = "flex";
+    showPlayerBar();
+    setPlaying(true);
     statusEl.style.display = "none";
+
+    // Volume
+    if (data.volume != null) {
+      volSlider.value = data.volume;
+      lastVolume = data.volume;
+      updateVolIcon(data.volume);
+    }
+
+    // Progress bar
+    durationMs = data.duration_ms || 0;
+    if (durationMs > 0) {
+      progressWrap.style.display = "flex";
+      progressFill.style.transition = "none";
+      progressFill.style.width = "0%";
+    } else {
+      progressWrap.style.display = "none";
+    }
 
     if (lines.length === 0) {
       lyricsEl.style.display = "none";
       showStatus("note", data.title || "Playing", "No lyrics available");
       metaEl.style.display = "flex";
+      showPlayerBar();
       return;
     }
 
@@ -466,12 +823,10 @@
     }
     if (idx === activeIdx) return;
 
-    // Remove previous styles
     if (activeIdx >= 0) {
       const prev = document.getElementById(`line-${activeIdx}`);
       if (prev) { prev.classList.remove("active"); prev.classList.add("recent"); }
     }
-    // Remove "recent" from older lines
     if (activeIdx > 1) {
       const older = document.getElementById(`line-${activeIdx - 1}`);
       if (older) older.classList.remove("recent");
@@ -489,7 +844,22 @@
   }
 
   function tick() {
-    updateActive(lastServerMs + (Date.now() - lastServerTimestamp));
+    const posMs = lastServerMs + (Date.now() - lastServerTimestamp);
+    updateActive(posMs);
+
+    if (durationMs > 0) {
+      const pct = Math.min(100, (posMs / durationMs) * 100);
+      progressFill.style.width = pct + "%";
+
+      const now = Date.now();
+      if (now - lastTimeLabelUpdate >= 1000) {
+        lastTimeLabelUpdate = now;
+        timeElapsedEl.textContent = formatTime(posMs);
+        const rem = Math.max(0, durationMs - posMs);
+        timeRemainingEl.textContent = "-" + formatTime(rem);
+      }
+    }
+
     rafId = requestAnimationFrame(tick);
   }
 
