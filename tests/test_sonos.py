@@ -4,7 +4,8 @@ from unittest.mock import patch, Mock
 from sonos import get_current_track, SonosUnavailableError, _parse_metadata
 
 
-def _soap_response(title="Bohemian Rhapsody", artist="Queen", album="A Night at the Opera", reltime="0:01:23"):
+def _soap_response(title="Bohemian Rhapsody", artist="Queen", album="A Night at the Opera",
+                   reltime="0:01:23", duration="3:32"):
     didl = (
         '&lt;DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/"'
         ' xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"'
@@ -21,6 +22,7 @@ def _soap_response(title="Bohemian Rhapsody", artist="Queen", album="A Night at 
   <s:Body>
     <u:GetPositionInfoResponse xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
       <Track>1</Track>
+      <TrackDuration>{duration}</TrackDuration>
       <TrackMetaData>{didl}</TrackMetaData>
       <RelTime>{reltime}</RelTime>
     </u:GetPositionInfoResponse>
@@ -52,6 +54,20 @@ def test_reltime_parsing_no_hours():
     assert track["position_ms"] == 225000  # 3m45s
 
 
+def test_get_current_track_includes_duration_ms():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text=_soap_response(duration="3:32"))
+        track = get_current_track("192.168.1.10")
+    assert track["duration_ms"] == 212000  # 3m32s
+
+
+def test_get_current_track_duration_ms_zero_for_radio():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text=_soap_response(duration="NOT_IMPLEMENTED"))
+        track = get_current_track("192.168.1.10")
+    assert track["duration_ms"] == 0
+
+
 def test_parse_metadata_stream_content():
     """Radio/streaming fallback via r:streamContent pipe-delimited string."""
     raw = html.unescape(
@@ -62,7 +78,7 @@ def test_parse_metadata_stream_content():
         '&lt;r:streamContent&gt;TYPE=SNG|TITLE Yesterday|ARTIST The Beatles|ALBUM Help!&lt;/r:streamContent&gt;'
         '&lt;/item&gt;&lt;/DIDL-Lite&gt;'
     )
-    title, artist, album = _parse_metadata(raw)
+    title, artist, album, _ = _parse_metadata(raw)
     assert title == "Yesterday"
     assert artist == "The Beatles"
     assert album == "Help!"

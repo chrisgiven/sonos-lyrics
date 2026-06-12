@@ -110,6 +110,7 @@ def get_current_track(ip: str) -> dict:
 
         raw_meta = info.findtext("TrackMetaData", "")
         reltime = info.findtext("RelTime", "0:00:00")
+        duration_str = info.findtext("TrackDuration", "0:00:00")
         title, artist, album, art_url = _parse_metadata(raw_meta)
 
         try:
@@ -117,7 +118,12 @@ def get_current_track(ip: str) -> dict:
         except (ValueError, IndexError):
             position_ms = 0
 
-        return {"title": title, "artist": artist, "album": album, "art_url": art_url, "position_ms": position_ms}
+        try:
+            duration_ms = _parse_reltime(duration_str)
+        except (ValueError, IndexError):
+            duration_ms = 0
+
+        return {"title": title, "artist": artist, "album": album, "art_url": art_url, "position_ms": position_ms, "duration_ms": duration_ms}
 
     except SonosUnavailableError:
         raise
