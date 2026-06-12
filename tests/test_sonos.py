@@ -1,7 +1,7 @@
 import html
 import pytest
 from unittest.mock import patch, Mock
-from sonos import get_current_track, SonosUnavailableError, _parse_metadata
+from sonos import get_current_track, SonosUnavailableError, _parse_metadata, transport_command, get_volume, set_volume
 
 
 def _soap_response(title="Bohemian Rhapsody", artist="Queen", album="A Night at the Opera",
@@ -66,6 +66,70 @@ def test_get_current_track_duration_ms_zero_for_radio():
         mock_post.return_value = Mock(status_code=200, text=_soap_response(duration="NOT_IMPLEMENTED"))
         track = get_current_track("192.168.1.10")
     assert track["duration_ms"] == 0
+
+
+def test_transport_command_play_sends_correct_soap():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text="<ok/>")
+        transport_command("192.168.1.10", "Play")
+    call_kwargs = mock_post.call_args[1]
+    assert "Play" in call_kwargs["headers"]["SOAPAction"]
+    assert "<Speed>1</Speed>" in call_kwargs["data"]
+
+
+def test_transport_command_pause_sends_correct_soap():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text="<ok/>")
+        transport_command("192.168.1.10", "Pause")
+    assert "Pause" in mock_post.call_args[1]["headers"]["SOAPAction"]
+
+
+def test_transport_command_raises_on_failure():
+    import requests as req
+    with patch("sonos.requests.post", side_effect=req.exceptions.ConnectionError):
+        with pytest.raises(SonosUnavailableError):
+            transport_command("192.168.1.10", "Play")
+
+
+def _volume_response(volume: int = 65) -> str:
+    return f"""<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Body>
+    <u:GetVolumeResponse xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
+      <CurrentVolume>{volume}</CurrentVolume>
+    </u:GetVolumeResponse>
+  </s:Body>
+</s:Envelope>"""
+
+
+def test_get_volume_returns_integer():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text=_volume_response(65))
+        result = get_volume("192.168.1.10")
+    assert result == 65
+
+
+def test_get_volume_raises_on_failure():
+    import requests as req
+    with patch("sonos.requests.post", side_effect=req.exceptions.ConnectionError):
+        with pytest.raises(SonosUnavailableError):
+            get_volume("192.168.1.10")
+
+
+def test_set_volume_sends_correct_level():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text="<ok/>")
+        set_volume("192.168.1.10", 42)
+    call_kwargs = mock_post.call_args[1]
+    assert "42" in call_kwargs["data"]
+    assert "SetVolume" in call_kwargs["headers"]["SOAPAction"]
+
+
+def test_set_volume_raises_on_failure():
+    import requests as req
+    with patch("sonos.requests.post", side_effect=req.exceptions.ConnectionError):
+        with pytest.raises(SonosUnavailableError):
+            set_volume("192.168.1.10", 50)
 
 
 def test_parse_metadata_stream_content():

@@ -41,6 +41,96 @@ class SonosUnavailableError(Exception):
     pass
 
 
+def transport_command(ip: str, cmd: str) -> None:
+    """Send Play, Pause, Previous, or Next to the speaker. Raises SonosUnavailableError on failure."""
+    extra = "<Speed>1</Speed>" if cmd == "Play" else ""
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        f'<u:{cmd} xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">'
+        f"<InstanceID>0</InstanceID>{extra}"
+        f"</u:{cmd}>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": f'"urn:schemas-upnp-org:service:AVTransport:1#{cmd}"',
+    }
+    url = f"http://{ip}:1400/MediaRenderer/AVTransport/Control"
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=3)
+        resp.raise_for_status()
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
+_GET_VOLUME_BODY = (
+    '<?xml version="1.0"?>'
+    '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+    ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+    "<s:Body>"
+    '<u:GetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">'
+    "<InstanceID>0</InstanceID>"
+    "<Channel>Master</Channel>"
+    "</u:GetVolume>"
+    "</s:Body>"
+    "</s:Envelope>"
+)
+_GET_VOLUME_HEADERS = {
+    "Content-Type": 'text/xml; charset="utf-8"',
+    "SOAPAction": '"urn:schemas-upnp-org:service:RenderingControl:1#GetVolume"',
+}
+
+
+def get_volume(ip: str) -> int:
+    """Return current volume (0–100) for the speaker. Raises SonosUnavailableError on failure."""
+    url = f"http://{ip}:1400/MediaRenderer/RenderingControl/Control"
+    try:
+        resp = requests.post(url, data=_GET_VOLUME_BODY, headers=_GET_VOLUME_HEADERS, timeout=2)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        ns_soap = "http://schemas.xmlsoap.org/soap/envelope/"
+        ns_rc = "urn:schemas-upnp-org:service:RenderingControl:1"
+        info = root.find(f"{{{ns_soap}}}Body/{{{ns_rc}}}GetVolumeResponse")
+        if info is None:
+            raise SonosUnavailableError("Unexpected SOAP response")
+        return int(info.findtext("CurrentVolume", "50"))
+    except SonosUnavailableError:
+        raise
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
+def set_volume(ip: str, level: int) -> None:
+    """Set speaker volume to level (0–100). Raises SonosUnavailableError on failure."""
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:SetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">'
+        "<InstanceID>0</InstanceID>"
+        "<Channel>Master</Channel>"
+        f"<DesiredVolume>{level}</DesiredVolume>"
+        "</u:SetVolume>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:RenderingControl:1#SetVolume"',
+    }
+    url = f"http://{ip}:1400/MediaRenderer/RenderingControl/Control"
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=2)
+        resp.raise_for_status()
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
 def _parse_reltime(reltime: str) -> int:
     """Convert H:MM:SS or M:SS to milliseconds."""
     parts = reltime.strip().split(":")
