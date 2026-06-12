@@ -719,8 +719,9 @@
     es.addEventListener("waiting", () => {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       setPlaying(false);
-      hidePlayerBar();
       showStatus("mute", "Nothing playing", "Start music on this speaker");
+      // Keep player bar visible so user can press play
+      if (selectedIp) showPlayerBar();
     });
 
     es.onerror = () => {
@@ -739,7 +740,10 @@
 
   function showStatus(iconKey, text, sub) {
     hidePlayerBar();
-    metaEl.style.display = "none";
+    // Keep meta header (Rooms button) visible if a speaker is already selected
+    if (!selectedIp) {
+      metaEl.style.display = "none";
+    }
     lyricsEl.style.display = "none";
     statusEl.style.display = "flex";
     statusIconEl.innerHTML = ICONS[iconKey] || ICONS.note;
