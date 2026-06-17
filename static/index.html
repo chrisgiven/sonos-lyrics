@@ -311,6 +311,16 @@
     line-height: 1.55;
     color: rgba(255,255,255,0.65);
   }
+  #artist-wiki-link {
+    display: inline-block;
+    margin-top: 7px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  #artist-wiki-link:hover { color: rgba(255,255,255,0.7); }
 
   /* ── Progress bar ── */
   #progress-wrap {
@@ -504,6 +514,7 @@
   <div id="artist-panel-text">
     <div id="artist-panel-name"></div>
     <div id="artist-bio"></div>
+    <a id="artist-wiki-link" href="#" target="_blank" rel="noopener" style="display:none">Wikipedia ↗</a>
   </div>
 </div>
 
@@ -566,6 +577,7 @@
   const artistPhoto = document.getElementById("artist-photo");
   const artistPanelName = document.getElementById("artist-panel-name");
   const artistBioEl = document.getElementById("artist-bio");
+  const artistWikiLink = document.getElementById("artist-wiki-link");
 
   let lines = [], activeIdx = -1, rafId = null;
   let lastServerMs = 0, lastServerTimestamp = 0;
@@ -820,6 +832,12 @@
       if (!data.bio && !data.image_url) return;
       artistPanelName.textContent = artist;
       artistBioEl.textContent = data.bio || "";
+      if (data.wiki_url) {
+        artistWikiLink.href = data.wiki_url;
+        artistWikiLink.style.display = "inline-block";
+      } else {
+        artistWikiLink.style.display = "none";
+      }
       if (data.image_url) {
         artistPhoto.src = data.image_url;
         artistPhoto.style.display = "block";

@@ -83,7 +83,7 @@ def fetch_artist_info(artist: str, fallback_art_url: str = "") -> dict:
     if key in _bio_cache:
         return _bio_cache[key]
 
-    result = {"bio": "", "image_url": ""}
+    result = {"bio": "", "image_url": "", "wiki_url": ""}
     try:
         resp = requests.get(
             _WIKI_URL + requests.utils.quote(artist),
@@ -97,6 +97,7 @@ def fetch_artist_info(artist: str, fallback_art_url: str = "") -> dict:
                 result["bio"] = _truncate_bio(extract)
             thumb = data.get("thumbnail", {})
             result["image_url"] = thumb.get("source", "")
+            result["wiki_url"] = data.get("content_urls", {}).get("desktop", {}).get("page", "")
     except Exception:
         pass
 
