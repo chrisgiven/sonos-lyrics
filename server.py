@@ -6,7 +6,7 @@ import time
 
 from flask import Flask, Response, jsonify, request, stream_with_context
 
-from lyrics import fetch_album_art, fetch_lyrics
+from lyrics import fetch_album_art, fetch_artist_info, fetch_lyrics
 from sonos import SonosUnavailableError, find_playing, get_current_track, get_speakers, get_volume, set_volume, transport_command
 
 
@@ -130,6 +130,12 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             return "", 204
         except SonosUnavailableError as e:
             return jsonify({"error": str(e)}), 503
+
+    @app.get("/artist")
+    def artist():
+        name = request.args.get("name", "").strip()
+        art_url = request.args.get("art_url", "").strip()
+        return jsonify(fetch_artist_info(name, art_url))
 
     @app.post("/volume")
     def volume():

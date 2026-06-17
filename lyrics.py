@@ -3,10 +3,12 @@ import requests
 
 _cache: dict = {}
 _art_cache: dict = {}
+_bio_cache: dict = {}
 _LRCLIB_URL = "https://lrclib.net/api/get"
 _MB_URL = "https://musicbrainz.org/ws/2/release/"
 _CAA_URL = "https://coverartarchive.org/release/"
 _MB_HEADERS = {"User-Agent": "SonosLyrics/1.0 (home-assistant)"}
+_WIKI_URL = "https://en.wikipedia.org/api/rest_v1/page/summary/"
 _LINE_RE = re.compile(r"\[(\d{2}):(\d{2})\.(\d{2,3})\]\s*(.*)")
 
 
@@ -64,6 +66,45 @@ def fetch_album_art(artist: str, album: str) -> str:
     except Exception:
         _art_cache[key] = ""
         return ""
+
+
+def _truncate_bio(text: str, max_sentences: int = 3) -> str:
+    """Return up to max_sentences sentences from text."""
+    import re as _re
+    parts = _re.split(r'(?<=[.!?])\s+', text.strip())
+    return " ".join(parts[:max_sentences])
+
+
+def fetch_artist_info(artist: str, fallback_art_url: str = "") -> dict:
+    """Fetch a short bio and photo URL for an artist from Wikipedia. Returns {"bio": str, "image_url": str}."""
+    if not artist:
+        return {"bio": "", "image_url": fallback_art_url}
+    key = artist.lower()
+    if key in _bio_cache:
+        return _bio_cache[key]
+
+    result = {"bio": "", "image_url": ""}
+    try:
+        resp = requests.get(
+            _WIKI_URL + requests.utils.quote(artist),
+            headers={**_MB_HEADERS, "Accept": "application/json"},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            extract = data.get("extract", "")
+            if extract and data.get("type") != "disambiguation":
+                result["bio"] = _truncate_bio(extract)
+            thumb = data.get("thumbnail", {})
+            result["image_url"] = thumb.get("source", "")
+    except Exception:
+        pass
+
+    if not result["image_url"]:
+        result["image_url"] = fallback_art_url
+
+    _bio_cache[key] = result
+    return result
 
 
 def fetch_lyrics(artist: str, title: str) -> list[dict]:

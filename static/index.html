@@ -272,6 +272,46 @@
     100% { height: 14px; }
   }
 
+  /* ── Artist panel ── */
+  #artist-panel {
+    position: relative; z-index: 10;
+    margin: 0 16px 40px;
+    padding: 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  #artist-panel.visible { display: flex; }
+
+  #artist-photo {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+
+  #artist-panel-text { flex: 1; min-width: 0; }
+  #artist-panel-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 5px;
+  }
+  #artist-bio {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.65);
+  }
+
   /* ── Progress bar ── */
   #progress-wrap {
     position: fixed;
@@ -458,6 +498,15 @@
 <!-- Lyrics -->
 <div id="lyrics" style="display:none"></div>
 
+<!-- Artist panel -->
+<div id="artist-panel">
+  <img id="artist-photo" src="" alt="" onerror="this.style.display='none'" onload="this.style.display='block'">
+  <div id="artist-panel-text">
+    <div id="artist-panel-name"></div>
+    <div id="artist-bio"></div>
+  </div>
+</div>
+
 <!-- Progress bar -->
 <div id="progress-wrap" style="display:none">
   <span class="time-label" id="time-elapsed">0:00</span>
@@ -513,9 +562,15 @@
   const timeElapsedEl = document.getElementById("time-elapsed");
   const timeRemainingEl = document.getElementById("time-remaining");
 
+  const artistPanel = document.getElementById("artist-panel");
+  const artistPhoto = document.getElementById("artist-photo");
+  const artistPanelName = document.getElementById("artist-panel-name");
+  const artistBioEl = document.getElementById("artist-bio");
+
   let lines = [], activeIdx = -1, rafId = null;
   let lastServerMs = 0, lastServerTimestamp = 0;
   let es = null, selectedIp = null, selectedName = null;
+  let lastArtist = null;
 
   // Playback state
   let isPlaying = false;
@@ -689,6 +744,8 @@
     lines = []; activeIdx = -1; lastServerMs = 0;
     lastReceivedMs = -1; stalePosCount = 0;
     durationMs = 0;
+    lastArtist = null;
+    artistPanel.classList.remove("visible");
     showStatus("note", "Connecting…", "");
 
     es = new EventSource(`/stream?ip=${encodeURIComponent(ip)}`);
@@ -751,6 +808,30 @@
     statusSubEl.textContent = sub;
   }
 
+  async function updateArtistPanel(artist, artUrl) {
+    if (!artist || artist === lastArtist) return;
+    lastArtist = artist;
+    artistPanel.classList.remove("visible");
+    try {
+      const params = new URLSearchParams({ name: artist, art_url: artUrl || "" });
+      const r = await fetch(`/artist?${params}`);
+      const data = await r.json();
+      if (artist !== lastArtist) return; // artist changed while fetching
+      if (!data.bio && !data.image_url) return;
+      artistPanelName.textContent = artist;
+      artistBioEl.textContent = data.bio || "";
+      if (data.image_url) {
+        artistPhoto.src = data.image_url;
+        artistPhoto.style.display = "block";
+      } else {
+        artistPhoto.style.display = "none";
+      }
+      artistPanel.classList.add("visible");
+    } catch {
+      // silently skip if unavailable
+    }
+  }
+
   function setBackground(url) {
     if (url) {
       bgEl.style.backgroundImage = `url('${url}')`;
@@ -780,6 +861,7 @@
     showPlayerBar();
     setPlaying(true);
     statusEl.style.display = "none";
+    updateArtistPanel(data.artist, data.art_url);
 
     // Volume
     if (data.volume != null) {
