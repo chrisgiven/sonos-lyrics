@@ -7,7 +7,17 @@ import time
 from flask import Flask, Response, jsonify, request, stream_with_context
 
 from lyrics import fetch_album_art, fetch_artist_info, fetch_lyrics
-from sonos import SonosUnavailableError, find_playing, get_current_track, get_speakers, get_volume, set_volume, transport_command
+from sonos import (
+    SonosUnavailableError,
+    browse_favorites,
+    find_playing,
+    get_current_track,
+    get_speakers,
+    get_volume,
+    play_uri,
+    set_volume,
+    transport_command,
+)
 
 
 def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float = 0.0) -> Flask:
@@ -127,6 +137,32 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             return jsonify({"error": "invalid action"}), 400
         try:
             transport_command(ip, action.capitalize())
+            return "", 204
+        except SonosUnavailableError as e:
+            return jsonify({"error": str(e)}), 503
+
+    @app.get("/favorites")
+    def favorites():
+        ip = request.args.get("ip")
+        if ip not in _speakers:
+            return jsonify({"error": "unknown speaker"}), 400
+        try:
+            return jsonify(browse_favorites(ip))
+        except SonosUnavailableError as e:
+            return jsonify({"error": str(e)}), 503
+
+    @app.post("/play")
+    def play():
+        ip = request.args.get("ip")
+        if ip not in _speakers:
+            return jsonify({"error": "unknown speaker"}), 400
+        data = request.get_json(silent=True) or {}
+        uri = (data.get("uri") or "").strip()
+        if not uri:
+            return jsonify({"error": "uri required"}), 400
+        metadata = data.get("metadata") or ""
+        try:
+            play_uri(ip, uri, metadata)
             return "", 204
         except SonosUnavailableError as e:
             return jsonify({"error": str(e)}), 503

@@ -131,6 +131,107 @@ def set_volume(ip: str, level: int) -> None:
         raise SonosUnavailableError(str(e)) from e
 
 
+def browse_favorites(ip: str) -> list[dict]:
+    """Browse Sonos Favorites (FV:2) on a speaker.
+
+    Returns [{title, uri, metadata, art_url}] where uri/metadata are passed
+    back to play_uri() to start playback. Raises SonosUnavailableError on failure.
+    """
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:Browse xmlns:u="urn:schemas-upnp-org:service:ContentDirectory:1">'
+        "<ObjectID>FV:2</ObjectID>"
+        "<BrowseFlag>BrowseDirectChildren</BrowseFlag>"
+        "<Filter>*</Filter>"
+        "<StartingIndex>0</StartingIndex>"
+        "<RequestedCount>200</RequestedCount>"
+        "<SortCriteria></SortCriteria>"
+        "</u:Browse>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:ContentDirectory:1#Browse"',
+    }
+    url = f"http://{ip}:1400/MediaServer/ContentDirectory/Control"
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=4)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        ns_soap = "http://schemas.xmlsoap.org/soap/envelope/"
+        ns_cd = "urn:schemas-upnp-org:service:ContentDirectory:1"
+        info = root.find(f"{{{ns_soap}}}Body/{{{ns_cd}}}BrowseResponse")
+        if info is None:
+            raise SonosUnavailableError("Unexpected SOAP response")
+        didl = info.findtext("Result", "") or ""
+    except SonosUnavailableError:
+        raise
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+    # Result is an escaped DIDL-Lite document listing the favorites.
+    try:
+        didl_root = ET.fromstring(didl)
+    except ET.ParseError:
+        return []
+
+    ns = {
+        "dc": "http://purl.org/dc/elements/1.1/",
+        "upnp": "urn:schemas-upnp-org:metadata-1-0/upnp/",
+        "r": "urn:schemas-rinconnetworks-com:metadata-1-0/",
+        "didl": "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/",
+    }
+    items = []
+    for item in didl_root.findall("didl:item", ns):
+        title = (item.findtext("dc:title", "", ns) or "").strip()
+        uri = (item.findtext("didl:res", "", ns) or "").strip()
+        # r:resMD holds the metadata to hand back to AVTransport when playing.
+        metadata = (item.findtext("r:resMD", "", ns) or "").strip()
+        art_url = (item.findtext("upnp:albumArtURI", "", ns) or "").strip()
+        if art_url.startswith("/"):
+            art_url = f"http://{ip}:1400{art_url}"
+        if title and uri:
+            items.append({"title": title, "uri": uri, "metadata": metadata, "art_url": art_url})
+    return items
+
+
+def play_uri(ip: str, uri: str, metadata: str = "") -> None:
+    """Set the speaker's transport to a URI (with DIDL metadata) and start playback.
+
+    Works for radio stations, streams, and most favorite items. Raises
+    SonosUnavailableError on failure.
+    """
+    set_body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:SetAVTransportURI xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">'
+        "<InstanceID>0</InstanceID>"
+        f"<CurrentURI>{html.escape(uri)}</CurrentURI>"
+        f"<CurrentURIMetaData>{html.escape(metadata)}</CurrentURIMetaData>"
+        "</u:SetAVTransportURI>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    set_headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI"',
+    }
+    url = f"http://{ip}:1400/MediaRenderer/AVTransport/Control"
+    try:
+        resp = requests.post(url, data=set_body, headers=set_headers, timeout=4)
+        resp.raise_for_status()
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+    # Then press play.
+    transport_command(ip, "Play")
+
+
 def _parse_reltime(reltime: str) -> int:
     """Convert H:MM:SS or M:SS to milliseconds."""
     parts = reltime.strip().split(":")
