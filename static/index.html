@@ -1,974 +1,842 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=["https://claude.ai","https://preview.claude.ai"];var x=true;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const M=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const R=q.length-q.trimStart().length;const m=q.length-q.trimEnd().length;if(R+m>=q.length)return K;return w(`txt:${C}:${K.start+R}:${K.end-m}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;M($,E(C),B(C))},JSXFragment($,C){M($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.type==="omelette-preview-refresh"){if(typeof J.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(J.token))return;const z=Math.max(1,Math.floor((J.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+J.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+z;return}if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080608">
 <title>Sonos Lyrics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --accent: #ff7e54;
+    --accent-2: #ff9e78;
+    --accent-rgb: 255, 126, 84;
+    --accent-glow: rgba(255, 126, 84, 0.5);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #0a0a0a;
+    background: #080608;
     color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     min-height: 100dvh;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* ── Blurred background art ── */
+  /* ── Background art + accent glow ── */
   #bg {
     position: fixed; inset: 0; z-index: 0;
-    background-size: cover;
-    background-position: center;
-    filter: blur(60px) brightness(0.35) saturate(1.8);
-    transform: scale(1.1);
+    background-size: cover; background-position: center;
+    filter: blur(70px) brightness(0.4) saturate(2);
+    transform: scale(1.25);
     transition: background-image 1.2s ease;
   }
+  #accent-glow {
+    position: fixed; z-index: 1;
+    top: 40%; left: 50%;
+    width: 130vw; height: 130vw; max-width: 640px; max-height: 640px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.5) 0%, rgba(var(--accent-rgb), 0) 64%);
+    transform: translate(-50%, -50%);
+    animation: breathe 7s ease-in-out infinite;
+    transition: background 1s ease;
+    pointer-events: none;
+    opacity: 0;
+  }
+  #accent-glow.on { opacity: 1; }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+    50%      { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  }
   #bg-overlay {
-    position: fixed; inset: 0; z-index: 1;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.5) 100%);
+    position: fixed; inset: 0; z-index: 2;
+    background: linear-gradient(to bottom, rgba(8,6,8,0.55) 0%, rgba(8,6,8,0.12) 30%, rgba(8,6,8,0.38) 62%, rgba(8,6,8,0.95) 100%);
   }
 
-  /* ── Sticky header ── */
+  /* ── Header ── */
   #meta {
-    position: sticky; top: 0; z-index: 20;
-    padding: env(safe-area-inset-top, 12px) 16px 12px;
-    padding-top: max(env(safe-area-inset-top), 12px);
-    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-    backdrop-filter: blur(20px) saturate(1.5);
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  #art-thumb {
-    width: 44px; height: 44px;
-    border-radius: 6px;
-    object-fit: cover;
-    flex-shrink: 0;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-    background: #1a1a1a;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    padding: max(env(safe-area-inset-top), 16px) 18px 14px;
+    display: flex; align-items: center; gap: 13px;
     display: none;
   }
-
+  #art-thumb {
+    width: 46px; height: 46px; border-radius: 13px;
+    object-fit: cover; flex-shrink: 0;
+    box-shadow: 0 6px 20px var(--accent-glow), inset 0 0 0 1.5px rgba(255,255,255,0.18);
+    background: #1a1a1a;
+  }
   #meta-text { flex: 1; min-width: 0; }
-  #title {
-    font-size: 0.95rem; font-weight: 700;
-    color: #fff;
+  #meta-top { display: flex; align-items: center; gap: 7px; }
+  #room-label {
+    font-size: 0.62rem; font-weight: 700;
+    color: var(--accent-2);
+    letter-spacing: 0.08em; text-transform: uppercase;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    letter-spacing: -0.01em;
+    transition: color 0.8s ease;
+  }
+  #title {
+    font-size: 1.06rem; font-weight: 800; color: #fff;
+    letter-spacing: -0.02em; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   #artist {
-    font-size: 0.8rem; color: rgba(255,255,255,0.6);
-    margin-top: 2px;
+    font-size: 0.78rem; color: rgba(255,255,255,0.55);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-
-  #change-btn {
-    flex-shrink: 0;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.8);
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 6px 10px 6px 8px;
-    border-radius: 20px;
-    cursor: pointer;
-    letter-spacing: 0.02em;
-    backdrop-filter: blur(10px);
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  #change-btn:active { background: rgba(255,255,255,0.22); }
-  #change-btn svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.7); flex-shrink: 0; }
-
-  #room-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.35);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-top: 1px;
-  }
-
-  /* ── Lyrics ── */
-  #lyrics {
-    position: relative; z-index: 10;
-    padding: 35vh 24px calc(45vh + 80px);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .line {
-    font-size: 1.55rem;
-    font-weight: 700;
-    line-height: 1.35;
-    color: rgba(255,255,255,0.22);
-    transition: color 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
-    cursor: default;
-    letter-spacing: -0.02em;
-  }
-
-  .line.active {
-    color: #ffffff;
-    transform: scale(1.04);
-    transform-origin: left center;
-  }
-
-  .line.recent {
-    color: rgba(255,255,255,0.5);
-  }
-
-  /* ── Status screen ── */
-  #status {
-    position: relative; z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 0 40px;
-    gap: 16px;
-  }
-
-  #status-icon {
-    width: 56px; height: 56px;
-    border-radius: 14px;
+  #rooms-btn {
+    flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%;
     background: rgba(255,255,255,0.08);
-    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: background 0.15s;
   }
-  #status-icon svg { width: 26px; height: 26px; fill: rgba(255,255,255,0.6); }
-
-  #status-text {
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    letter-spacing: -0.01em;
-  }
-
-  #status-sub {
-    font-size: 0.8rem;
-    color: rgba(255,255,255,0.35);
-  }
-
-  .dot {
-    width: 8px; height: 8px;
-    background: rgba(255,255,255,0.5);
-    border-radius: 50%;
-    animation: pulse 1.4s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.2; transform: scale(0.7); }
-    50% { opacity: 1; transform: scale(1.3); }
-  }
-
-  /* ── Speaker picker ── */
-  #picker {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(30px) saturate(1.5);
-    -webkit-backdrop-filter: blur(30px) saturate(1.5);
-    display: flex;
-    flex-direction: column;
-    padding: max(env(safe-area-inset-top), 52px) 20px 32px;
-    gap: 10px;
-    overflow-y: auto;
-  }
-
-  #picker h2 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.03em;
-    margin-bottom: 6px;
-  }
-
-  #picker-sub {
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.4);
-    margin-top: -4px;
-    margin-bottom: 10px;
-  }
-
-  .speaker-btn {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 14px 16px;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: background 0.15s, transform 0.1s;
-  }
-  .speaker-btn:active { background: rgba(255,255,255,0.14); transform: scale(0.98); }
-  .speaker-btn.playing { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); }
-
-  .speaker-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.1);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .speaker-icon svg { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); }
-
-  .speaker-info { flex: 1; min-width: 0; }
-  .speaker-name {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: -0.01em;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .speaker-status {
-    font-size: 0.73rem;
-    color: rgba(255,255,255,0.4);
-    margin-top: 2px;
-  }
-  .speaker-btn.playing .speaker-status { color: #4ade80; }
-  .speaker-track {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.55);
-    margin-top: 3px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .speaker-track .track-title { font-weight: 600; color: rgba(255,255,255,0.85); }
-  .speaker-track .track-sep { margin: 0 3px; color: rgba(255,255,255,0.25); }
-
-  .playing-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #4ade80;
-    animation: pulse 1.4s ease-in-out infinite;
-    margin-left: auto; flex-shrink: 0;
-  }
+  #rooms-btn:active { background: rgba(255,255,255,0.18); }
+  #rooms-btn svg { width: 17px; height: 17px; fill: rgba(255,255,255,0.7); }
 
   /* ── Equalizer ── */
-  .eq {
-    display: flex;
-    align-items: flex-end;
-    gap: 3px;
-    height: 18px;
-    flex-shrink: 0;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
+  .eq { display: flex; align-items: flex-end; gap: 2.5px; height: 11px; flex-shrink: 0; opacity: 0; transition: opacity 0.2s; }
   .eq.playing { opacity: 1; }
-  .eq-bar {
-    width: 3px;
-    background: rgba(255,255,255,0.7);
-    border-radius: 2px;
-    animation: eq-bounce 0.6s ease-in-out infinite alternate;
-  }
+  .eq-bar { width: 2.5px; background: var(--accent); border-radius: 2px; animation: eqb 0.6s ease-in-out infinite alternate; }
   .eq-bar:nth-child(2) { animation-duration: 0.9s; }
   .eq-bar:nth-child(3) { animation-duration: 0.75s; }
-  @keyframes eq-bounce {
-    0%   { height: 4px; }
-    100% { height: 14px; }
+  @keyframes eqb { 0% { height: 3px; } 100% { height: 11px; } }
+
+  /* ── Lyrics ── */
+  #lyrics-viewport { position: fixed; inset: 0; z-index: 10; overflow: hidden; display: none; }
+  #lyrics {
+    position: absolute; left: 0; right: 0; top: 50%;
+    padding: 0 26px;
+    display: flex; flex-direction: column; gap: 17px;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .line {
+    font-size: 1.6rem; font-weight: 700; line-height: 1.3;
+    letter-spacing: -0.022em; color: #fff;
+    opacity: 0.08; filter: blur(4.4px);
+    transform-origin: left center;
+    transition: color 0.45s ease, opacity 0.45s ease, filter 0.45s ease, transform 0.45s cubic-bezier(0.4,0,0.2,1);
+    cursor: default;
   }
 
-  /* ── Artist panel ── */
-  #artist-panel {
-    position: relative; z-index: 10;
-    margin: 0 16px calc(140px + env(safe-area-inset-bottom));
-    padding: 16px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 18px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: none;
-    gap: 14px;
-    align-items: flex-start;
+  /* ── Control sheet ── */
+  #sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+    padding: 20px 20px calc(22px + env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, rgba(12,9,12,0) 0%, rgba(12,9,12,0.72) 26%, rgba(12,9,12,0.94) 100%);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
   }
-  #artist-panel.visible { display: flex; }
+  #sheet.visible { opacity: 1; pointer-events: auto; }
 
-  #artist-photo {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    background: rgba(255,255,255,0.08);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-  }
-
-  #artist-panel-text { flex: 1; min-width: 0; }
-  #artist-panel-name {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: rgba(255,255,255,0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 5px;
-  }
-  #artist-bio {
-    font-size: 0.82rem;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.65);
-  }
-  #artist-wiki-link {
-    display: inline-block;
-    margin-top: 7px;
-    font-size: 0.73rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.4);
-    text-decoration: none;
-    letter-spacing: 0.02em;
-  }
-  #artist-wiki-link:hover { color: rgba(255,255,255,0.7); }
-
-  /* ── Progress bar ── */
-  #progress-wrap {
-    position: fixed;
-    bottom: calc(60px + env(safe-area-inset-bottom));
-    left: 0; right: 0;
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 14px;
-    pointer-events: none;
-  }
-  #progress-track {
-    flex: 1;
-    height: 3px;
-    background: rgba(255,255,255,0.12);
-    border-radius: 2px;
-    overflow: hidden;
-  }
+  #progress { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  #progress.hidden { display: none; }
+  .time-label { font-size: 0.69rem; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; width: 30px; flex-shrink: 0; }
+  #time-remaining { text-align: right; }
+  #progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.14); border-radius: 3px; overflow: hidden; }
   #progress-fill {
-    height: 100%;
-    background: rgba(255,255,255,0.75);
-    border-radius: 2px;
-    width: 0%;
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    box-shadow: 0 0 10px var(--accent-glow); border-radius: 3px;
     transition: width 0.9s linear;
   }
-  .time-label {
-    font-size: 0.62rem;
-    color: rgba(255,255,255,0.35);
-    font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-    width: 30px;
-  }
-  #time-remaining { text-align: right; }
 
-  /* ── Player bar ── */
-  #player-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 30;
-    height: 60px;
-    padding: 0 16px;
-    padding-bottom: env(safe-area-inset-bottom);
-    background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(20px) saturate(1.5);
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    border-top: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
+  #transport { display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 18px; }
+  .ctrl { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s; }
+  .ctrl.tapped { opacity: 0.4; }
+  #prev-btn svg, #next-btn svg { width: 24px; height: 24px; fill: rgba(255,255,255,0.78); }
+  #play-btn {
+    width: 62px; height: 62px; border-radius: 50%;
+    background: linear-gradient(145deg, var(--accent-2), var(--accent));
+    box-shadow: 0 8px 28px var(--accent-glow);
+    transition: transform 0.12s, opacity 0.15s;
   }
-  #player-bar.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  #play-btn:active { transform: scale(0.94); }
+  #play-btn svg { width: 26px; height: 26px; fill: #160b06; }
 
-  /* Volume section */
-  #vol-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-    position: relative;
-  }
-  #mute-btn {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-  }
-  #mute-btn svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.55); }
-
+  #vol-section { display: flex; align-items: center; gap: 11px; position: relative; }
+  #mute-btn { background: none; border: none; padding: 0; cursor: pointer; flex-shrink: 0; display: flex; }
+  #mute-btn svg { width: 17px; height: 17px; fill: rgba(255,255,255,0.5); }
   #vol-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 3px;
-    border-radius: 2px;
-    background: rgba(255,255,255,0.15);
-    outline: none;
-    cursor: pointer;
+    flex: 1; -webkit-appearance: none; appearance: none; height: 4px;
+    border-radius: 3px; background: rgba(255,255,255,0.16); outline: none; cursor: pointer;
   }
-  #vol-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 0 4px rgba(0,0,0,0.5);
-    cursor: pointer;
-  }
-  #vol-slider::-moz-range-thumb {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    border: none;
-    cursor: pointer;
-  }
+  #vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.5); }
+  #vol-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: none; }
   #vol-pct {
-    position: absolute;
-    bottom: 22px;
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.7);
-    background: rgba(0,0,0,0.6);
-    padding: 2px 5px;
-    border-radius: 4px;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-    white-space: nowrap;
+    position: absolute; bottom: 20px; font-size: 0.65rem; color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 5px;
+    opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
   }
 
-  /* Transport */
-  #transport {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+  /* ── Status / empty states ── */
+  #status {
+    position: fixed; inset: 0; z-index: 10;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 20px; padding: 0 40px; text-align: center;
   }
-  .ctrl-btn {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.15s, background 0.15s;
+  #status-icon {
+    width: 96px; height: 96px; border-radius: 28px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.12);
   }
-  .ctrl-btn:active { background: rgba(255,255,255,0.2); }
-  .ctrl-btn.tapped { opacity: 0.4; }
-  #prev-btn, #next-btn { width: 34px; height: 34px; }
-  #prev-btn svg, #next-btn svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.8); }
-  #play-btn { width: 42px; height: 42px; background: rgba(255,255,255,0.9); }
-  #play-btn svg { width: 18px; height: 18px; fill: #000; }
+  #status-icon svg { width: 42px; height: 42px; fill: rgba(var(--accent-rgb), 0.85); }
+  #status-text { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.03em; }
+  #status-sub { font-size: 0.88rem; line-height: 1.5; color: rgba(255,255,255,0.45); margin-top: -10px; max-width: 280px; }
+  #status-action {
+    display: none; align-items: center; gap: 8px; margin-top: 4px;
+    background: linear-gradient(145deg, var(--accent-2), var(--accent)); color: #160b06;
+    font-size: 0.85rem; font-weight: 700; padding: 12px 20px; border-radius: 24px;
+    border: none; cursor: pointer; box-shadow: 0 8px 24px var(--accent-glow);
+  }
+  #status-action svg { width: 16px; height: 16px; fill: #160b06; }
+  .spin-dots { display: flex; gap: 7px; }
+  .spin-dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); animation: pulseDot 1.4s ease-in-out infinite; }
+  .spin-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .spin-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulseDot { 0%,100% { opacity: 0.25; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.25); } }
+
+  /* ── No-lyrics: art hero ── */
+  #nolyrics {
+    position: fixed; left: 0; right: 0; z-index: 10;
+    top: max(env(safe-area-inset-top), 16px); bottom: 0;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; padding: 80px 40px calc(190px + env(safe-area-inset-bottom)); text-align: center;
+  }
+  #nolyrics-art {
+    width: 56vw; height: 56vw; max-width: 220px; max-height: 220px;
+    border-radius: 22px; object-fit: cover;
+    box-shadow: 0 24px 60px var(--accent-glow), inset 0 0 0 1.5px rgba(255,255,255,0.16);
+    background: #1a1a1a;
+  }
+  #nolyrics-title { font-size: 1.65rem; font-weight: 800; letter-spacing: -0.03em; }
+  #nolyrics-artist { font-size: 0.95rem; color: rgba(255,255,255,0.55); margin-top: 4px; }
+  #nolyrics-badge {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
+    font-size: 0.74rem; color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 12px; border-radius: 20px;
+  }
+  #nolyrics-badge svg { width: 13px; height: 13px; fill: rgba(255,255,255,0.4); }
+  #nolyrics-bio { font-size: 0.82rem; line-height: 1.55; color: rgba(255,255,255,0.55); max-width: 300px; margin-top: 6px; }
+
+  /* ── Rooms bottom sheet ── */
+  #picker-backdrop {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(6,5,7,0.62); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  #picker-backdrop.open { opacity: 1; pointer-events: auto; }
+  #picker {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+    top: 88px;
+    background: rgba(16,12,15,0.92); backdrop-filter: blur(26px) saturate(1.4); -webkit-backdrop-filter: blur(26px) saturate(1.4);
+    border-top-left-radius: 30px; border-top-right-radius: 30px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.45);
+    transform: translateY(100%); transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex; flex-direction: column; padding: 12px 18px 0;
+  }
+  #picker.open { transform: translateY(0); }
+  #grab { width: 40px; height: 4px; border-radius: 3px; background: rgba(255,255,255,0.22); margin: 0 auto 16px; flex-shrink: 0; }
+  #picker-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; flex-shrink: 0; }
+  #picker-head h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+  #picker-sub { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  #picker-done { font-size: 0.88rem; font-weight: 700; color: var(--accent-2); cursor: pointer; }
+  #picker-scroll { overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; }
+
+  .group-card { background: rgba(var(--accent-rgb), 0.1); border: 1px solid rgba(var(--accent-rgb), 0.32); border-radius: 22px; padding: 15px 15px 17px; }
+  .group-top { display: flex; align-items: center; gap: 11px; }
+  .group-ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(var(--accent-rgb), 0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .group-ic svg { width: 18px; height: 18px; fill: var(--accent-2); }
+  .group-title { font-size: 0.94rem; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .group-status { font-size: 0.72rem; color: var(--accent-2); font-weight: 600; }
+  .group-now { display: flex; align-items: center; gap: 10px; margin: 13px 0 14px; }
+  .group-now-art { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #222; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .group-now-title { font-size: 0.84rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .group-now-artist { font-size: 0.72rem; color: rgba(255,255,255,0.5); }
+  .vol-row { display: flex; align-items: center; gap: 10px; }
+  .vol-label { font-size: 0.64rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.45); width: 74px; flex-shrink: 0; }
+  .mini-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.16); outline: none; cursor: pointer; }
+  .mini-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.5); }
+  .mini-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: none; }
+  .group-fill-track { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.16); position: relative; }
+  .group-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius: 3px; }
+  .group-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 13px 0 12px; }
+  .member { display: flex; align-items: center; gap: 10px; }
+  .member + .member { margin-top: 12px; }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .member-name { font-size: 0.81rem; font-weight: 600; white-space: nowrap; }
+  .main-tag { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.06em; color: var(--accent-2); background: rgba(var(--accent-rgb), 0.16); padding: 2px 6px; border-radius: 5px; }
+  .member-vol { display: flex; align-items: center; gap: 8px; }
+  .member-vol svg { width: 13px; height: 13px; fill: rgba(255,255,255,0.4); flex-shrink: 0; }
+  .remove-btn { width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .remove-btn svg { width: 16px; height: 16px; fill: #160b06; }
+
+  .add-label { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 11px; }
+  .room-row { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 15px; padding: 12px 13px; cursor: pointer; transition: background 0.15s; }
+  .room-row + .room-row { margin-top: 9px; }
+  .room-row:active { background: rgba(255,255,255,0.1); }
+  .room-ic { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .room-ic svg { width: 17px; height: 17px; fill: rgba(255,255,255,0.55); }
+  .room-info { flex: 1; min-width: 0; }
+  .room-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .room-status { font-size: 0.72rem; color: rgba(255,255,255,0.38); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .room-status .rt-title { color: rgba(255,255,255,0.7); font-weight: 600; }
+  .room-playing .room-status { color: var(--accent-2); }
+  .add-btn { width: 32px; height: 32px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .add-btn svg { width: 17px; height: 17px; fill: rgba(255,255,255,0.8); }
+  .picker-empty { color: rgba(255,255,255,0.4); font-size: 0.9rem; padding: 12px 2px; }
 </style>
 </head>
 <body>
 
-<!-- Blurred background -->
 <div id="bg"></div>
+<div id="accent-glow"></div>
 <div id="bg-overlay"></div>
 
-<!-- Speaker picker -->
-<div id="picker">
-  <h2>Speakers</h2>
-  <p id="picker-sub">Choose a room to follow</p>
-</div>
-
-<!-- Now playing header -->
-<div id="meta" style="display:none">
-  <img id="art-thumb" src="" alt="" onerror="this.style.display='none'" onload="this.style.display='block'">
-  <div class="eq" id="eq">
-    <div class="eq-bar"></div>
-    <div class="eq-bar"></div>
-    <div class="eq-bar"></div>
-  </div>
+<!-- Header -->
+<div id="meta">
+  <img id="art-thumb" alt="" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'">
   <div id="meta-text">
-    <div id="room-label"></div>
+    <div id="meta-top">
+      <span id="room-label"></span>
+      <div class="eq" id="eq"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+    </div>
     <div id="title"></div>
     <div id="artist"></div>
   </div>
-  <button id="change-btn" onclick="showPicker()">
+  <button id="rooms-btn" onclick="openPicker()" title="Rooms">
     <svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-    Rooms
   </button>
 </div>
 
-<!-- Status -->
-<div id="status" style="display:none">
-  <div id="status-icon">
-    <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-  </div>
+<!-- Lyrics -->
+<div id="lyrics-viewport"><div id="lyrics"></div></div>
+
+<!-- Status / empty -->
+<div id="status">
+  <div id="status-icon"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg></div>
   <div id="status-text">Connecting…</div>
   <div id="status-sub"></div>
+  <button id="status-action" onclick="openPicker()"><svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg> Choose a room</button>
 </div>
 
-<!-- Lyrics -->
-<div id="lyrics" style="display:none"></div>
-
-<!-- Artist panel -->
-<div id="artist-panel">
-  <img id="artist-photo" src="" alt="" onerror="this.style.display='none'" onload="this.style.display='block'">
-  <div id="artist-panel-text">
-    <div id="artist-panel-name"></div>
-    <div id="artist-bio"></div>
-    <a id="artist-wiki-link" href="#" target="_blank" rel="noopener" style="display:none">Wikipedia ↗</a>
+<!-- No-lyrics art hero -->
+<div id="nolyrics">
+  <img id="nolyrics-art" alt="" onerror="this.style.visibility='hidden'">
+  <div>
+    <div id="nolyrics-title"></div>
+    <div id="nolyrics-artist"></div>
+    <div id="nolyrics-badge"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg> No lyrics for this track</div>
+    <div id="nolyrics-bio"></div>
   </div>
 </div>
 
-<!-- Progress bar -->
-<div id="progress-wrap" style="display:none">
-  <span class="time-label" id="time-elapsed">0:00</span>
-  <div id="progress-track">
-    <div id="progress-fill"></div>
+<!-- Control sheet -->
+<div id="sheet">
+  <div id="progress">
+    <span class="time-label" id="time-elapsed">0:00</span>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <span class="time-label" id="time-remaining">-0:00</span>
   </div>
-  <span class="time-label" id="time-remaining">-0:00</span>
-</div>
-
-<!-- Player bar -->
-<div id="player-bar">
+  <div id="transport">
+    <button class="ctrl" id="prev-btn" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+    <button class="ctrl" id="play-btn" title="Play / Pause"><svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="ctrl" id="next-btn" title="Next"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  </div>
   <div id="vol-section">
-    <button id="mute-btn" title="Mute">
-      <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-    </button>
+    <button id="mute-btn" title="Mute"><svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>
     <input type="range" id="vol-slider" min="0" max="100" value="50">
     <span id="vol-pct"></span>
   </div>
-  <div id="transport">
-    <button class="ctrl-btn" id="prev-btn" title="Previous">
-      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
-    </button>
-    <button class="ctrl-btn" id="play-btn" title="Play / Pause">
-      <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    </button>
-    <button class="ctrl-btn" id="next-btn" title="Next">
-      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-    </button>
+</div>
+
+<!-- Rooms sheet -->
+<div id="picker-backdrop" onclick="closePicker()"></div>
+<div id="picker">
+  <div id="grab"></div>
+  <div id="picker-head">
+    <div><h2>Rooms</h2><div id="picker-sub">Choose a room to follow</div></div>
+    <div id="picker-done" onclick="closePicker()">Done</div>
   </div>
+  <div id="picker-scroll"></div>
 </div>
 
 <script>
+  // ── Element refs ─────────────────────────────────────
   const metaEl = document.getElementById("meta");
   const titleEl = document.getElementById("title");
   const artistEl = document.getElementById("artist");
   const artThumb = document.getElementById("art-thumb");
   const bgEl = document.getElementById("bg");
+  const accentGlowEl = document.getElementById("accent-glow");
+  const roomLabelEl = document.getElementById("room-label");
+  const eqEl = document.getElementById("eq");
+
+  const lyricsVp = document.getElementById("lyrics-viewport");
+  const lyricsEl = document.getElementById("lyrics");
+
   const statusEl = document.getElementById("status");
   const statusTextEl = document.getElementById("status-text");
   const statusSubEl = document.getElementById("status-sub");
   const statusIconEl = document.getElementById("status-icon");
-  const lyricsEl = document.getElementById("lyrics");
-  const pickerEl = document.getElementById("picker");
-  const roomLabelEl = document.getElementById("room-label");
+  const statusActionEl = document.getElementById("status-action");
 
-  // Player bar elements
-  const playerBar = document.getElementById("player-bar");
-  const eqEl = document.getElementById("eq");
-  const volSlider = document.getElementById("vol-slider");
-  const volPctEl = document.getElementById("vol-pct");
-  const progressWrap = document.getElementById("progress-wrap");
+  const noLyricsEl = document.getElementById("nolyrics");
+  const noLyricsArt = document.getElementById("nolyrics-art");
+  const noLyricsTitle = document.getElementById("nolyrics-title");
+  const noLyricsArtist = document.getElementById("nolyrics-artist");
+  const noLyricsBio = document.getElementById("nolyrics-bio");
+
+  const sheetEl = document.getElementById("sheet");
+  const progressEl = document.getElementById("progress");
   const progressFill = document.getElementById("progress-fill");
   const timeElapsedEl = document.getElementById("time-elapsed");
   const timeRemainingEl = document.getElementById("time-remaining");
+  const volSlider = document.getElementById("vol-slider");
+  const volPctEl = document.getElementById("vol-pct");
 
-  const artistPanel = document.getElementById("artist-panel");
-  const artistPhoto = document.getElementById("artist-photo");
-  const artistPanelName = document.getElementById("artist-panel-name");
-  const artistBioEl = document.getElementById("artist-bio");
-  const artistWikiLink = document.getElementById("artist-wiki-link");
+  const pickerEl = document.getElementById("picker");
+  const pickerBackdrop = document.getElementById("picker-backdrop");
+  const pickerScroll = document.getElementById("picker-scroll");
 
+  // ── State ────────────────────────────────────────────
   let lines = [], activeIdx = -1, rafId = null;
   let lastServerMs = 0, lastServerTimestamp = 0;
   let es = null, selectedIp = null, selectedName = null;
-  let lastArtist = null;
-
-  // Playback state
-  let isPlaying = false;
-  let lastReceivedMs = -1;
-  let stalePosCount = 0;
-  let durationMs = 0;
-  let lastTimeLabelUpdate = 0;
-  let lastVolume = 50;
-  let volPctTimeout = null;
+  let lastArtist = null, lastArtUrl = "";
+  let isPlaying = false, lastReceivedMs = -1, stalePosCount = 0;
+  let durationMs = 0, lastTimeLabelUpdate = 0, lastVolume = 50, volPctTimeout = null;
+  // Multi-room: the active group coordinator IP (resolved from /speakers topology in renderPicker).
+  let coordinatorIp = null;
 
   const PLAY_PATH = "M8 5v14l11-7z";
   const PAUSE_PATH = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
   const VOL_ON_PATH = "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z";
   const VOL_OFF_PATH = "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z";
 
+  // ── Accent extraction ────────────────────────────────
+  const DEFAULT_ACCENT = [255, 126, 84];
+  function setAccent(r, g, b) {
+    const root = document.documentElement.style;
+    root.setProperty("--accent", `rgb(${r}, ${g}, ${b})`);
+    root.setProperty("--accent-rgb", `${r}, ${g}, ${b}`);
+    root.setProperty("--accent-glow", `rgba(${r}, ${g}, ${b}, 0.5)`);
+    // lighter tint for gradients / labels
+    const lr = Math.round(r + (255 - r) * 0.34), lg = Math.round(g + (255 - g) * 0.34), lb = Math.round(b + (255 - b) * 0.34);
+    root.setProperty("--accent-2", `rgb(${lr}, ${lg}, ${lb})`);
+  }
+  function extractAccent(url) {
+    if (!url) { setAccent(...DEFAULT_ACCENT); return; }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const S = 24, c = document.createElement("canvas");
+        c.width = S; c.height = S;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(img, 0, 0, S, S);
+        const d = ctx.getImageData(0, 0, S, S).data;
+        let br = 0, bg = 0, bb = 0, bw = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+          const sat = mx === 0 ? 0 : (mx - mn) / mx;
+          const lum = (mx + mn) / 510; // 0..1
+          // weight toward saturated, mid-bright pixels
+          const w = sat * sat * (1 - Math.abs(lum - 0.55) * 1.2);
+          if (w > 0) { br += r * w; bg += g * w; bb += b * w; bw += w; }
+        }
+        if (bw < 0.001) { setAccent(...DEFAULT_ACCENT); return; }
+        let r = br / bw, g = bg / bw, b = bb / bw;
+        // boost saturation a touch and clamp brightness so it reads on dark
+        const mx = Math.max(r, g, b);
+        if (mx < 150) { const k = 175 / mx; r *= k; g *= k; b *= k; }
+        setAccent(Math.min(255, Math.round(r)), Math.min(255, Math.round(g)), Math.min(255, Math.round(b)));
+      } catch (e) {
+        setAccent(...DEFAULT_ACCENT); // CORS-tainted canvas, etc.
+      }
+    };
+    img.onerror = () => setAccent(...DEFAULT_ACCENT);
+    img.src = url;
+  }
+
   // ── Helpers ──────────────────────────────────────────
-
-  function setPlaying(playing) {
-    isPlaying = playing;
-    document.getElementById("play-icon").querySelector("path").setAttribute("d", playing ? PAUSE_PATH : PLAY_PATH);
-    eqEl.classList.toggle("playing", playing);
+  function setPlaying(p) {
+    isPlaying = p;
+    document.getElementById("play-icon").querySelector("path").setAttribute("d", p ? PAUSE_PATH : PLAY_PATH);
+    eqEl.classList.toggle("playing", p);
   }
-
-  function showPlayerBar() { playerBar.classList.add("visible"); }
-  function hidePlayerBar() {
-    playerBar.classList.remove("visible");
-    progressWrap.style.display = "none";
-  }
-
-  function updateVolIcon(level) {
-    document.getElementById("vol-icon").querySelector("path").setAttribute("d", level === 0 ? VOL_OFF_PATH : VOL_ON_PATH);
-  }
-
-  function formatTime(ms) {
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, "0")}`;
-  }
+  function showSheet() { sheetEl.classList.add("visible"); }
+  function hideSheet() { sheetEl.classList.remove("visible"); }
+  function updateVolIcon(l) { document.getElementById("vol-icon").querySelector("path").setAttribute("d", l === 0 ? VOL_OFF_PATH : VOL_ON_PATH); }
+  function formatTime(ms) { const s = Math.floor(ms / 1000), m = Math.floor(s / 60); return `${m}:${(s % 60).toString().padStart(2, "0")}`; }
+  function tapFeedback(b) { b.classList.add("tapped"); setTimeout(() => b.classList.remove("tapped"), 300); }
+  function esc(s) { return (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
   async function sendControl(action) {
     if (!selectedIp) return;
-    await fetch(`/control?ip=${encodeURIComponent(selectedIp)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
+    try { await fetch(`/control?ip=${encodeURIComponent(selectedIp)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) }); } catch {}
   }
-
   async function sendVolume(level) {
     if (!selectedIp) return;
-    await fetch(`/volume?ip=${encodeURIComponent(selectedIp)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ level }),
-    });
+    try { await fetch(`/volume?ip=${encodeURIComponent(selectedIp)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ level }) }); } catch {}
   }
 
-  function tapFeedback(btn) {
-    btn.classList.add("tapped");
-    setTimeout(() => btn.classList.remove("tapped"), 300);
-  }
+  // ── Transport ────────────────────────────────────────
+  document.getElementById("prev-btn").addEventListener("click", function () { tapFeedback(this); sendControl("previous"); });
+  document.getElementById("play-btn").addEventListener("click", function () { tapFeedback(this); const a = isPlaying ? "pause" : "play"; setPlaying(!isPlaying); sendControl(a); });
+  document.getElementById("next-btn").addEventListener("click", function () { tapFeedback(this); sendControl("next"); });
 
-  // ── Transport controls ───────────────────────────────
-
-  document.getElementById("prev-btn").addEventListener("click", function() {
-    tapFeedback(this);
-    sendControl("previous");
-  });
-
-  document.getElementById("play-btn").addEventListener("click", function() {
-    tapFeedback(this);
-    const action = isPlaying ? "pause" : "play";
-    setPlaying(!isPlaying);
-    sendControl(action);
-  });
-
-  document.getElementById("next-btn").addEventListener("click", function() {
-    tapFeedback(this);
-    sendControl("next");
-  });
-
-  // ── Volume controls ──────────────────────────────────
-
-  volSlider.addEventListener("input", function() {
-    const level = parseInt(this.value);
-    volPctEl.textContent = `${level}%`;
-    volPctEl.style.left = `${(level / 100) * (this.offsetWidth - 14) + 7}px`;
+  // ── Volume ───────────────────────────────────────────
+  volSlider.addEventListener("input", function () {
+    const l = parseInt(this.value);
+    volPctEl.textContent = `${l}%`;
+    volPctEl.style.left = `${(l / 100) * (this.offsetWidth - 14) + 7}px`;
     volPctEl.style.opacity = "1";
-    updateVolIcon(level);
+    updateVolIcon(l);
     clearTimeout(volPctTimeout);
   });
-
-  volSlider.addEventListener("change", function() {
-    const level = parseInt(this.value);
-    lastVolume = level;
-    sendVolume(level);
+  volSlider.addEventListener("change", function () {
+    const l = parseInt(this.value); lastVolume = l; sendVolume(l);
     volPctTimeout = setTimeout(() => { volPctEl.style.opacity = "0"; }, 1500);
   });
-
-  document.getElementById("mute-btn").addEventListener("click", function() {
-    const current = parseInt(volSlider.value);
-    if (current > 0) {
-      lastVolume = current;
-      volSlider.value = 0;
-      updateVolIcon(0);
-      sendVolume(0);
-    } else {
-      volSlider.value = lastVolume;
-      updateVolIcon(lastVolume);
-      sendVolume(lastVolume);
-    }
+  document.getElementById("mute-btn").addEventListener("click", function () {
+    const cur = parseInt(volSlider.value);
+    if (cur > 0) { lastVolume = cur; volSlider.value = 0; updateVolIcon(0); sendVolume(0); }
+    else { volSlider.value = lastVolume; updateVolIcon(lastVolume); sendVolume(lastVolume); }
   });
 
-  // ── Speaker picker ───────────────────────────────────
-
-  async function showPicker() {
-    if (es) { es.close(); es = null; }
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    hidePlayerBar();
-    pickerEl.style.display = "flex";
-    pickerEl.innerHTML = '<h2>Speakers</h2><p id="picker-sub">Choose a room to follow</p>';
-
-    let speakers;
-    try {
-      const r = await fetch("/speakers");
-      speakers = await r.json();
-    } catch {
-      pickerEl.innerHTML += '<p style="color:rgba(255,255,255,.4);font-size:.9rem;padding:12px 0">Could not load speakers</p>';
-      return;
-    }
-
-    speakers.forEach(s => {
-      const btn = document.createElement("button");
-      btn.className = "speaker-btn" + (s.playing ? " playing" : "");
-      const speakerSvg = s.playing
-        ? `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>`
-        : `<svg viewBox="0 0 24 24"><path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/></svg>`;
-      let trackHtml = '';
-      if (s.playing && (s.title || s.artist)) {
-        const titleSpan = s.title ? `<span class="track-title">${s.title}</span>` : '';
-        const sep = (s.title && s.artist) ? `<span class="track-sep">·</span>` : '';
-        const artistSpan = s.artist ? `<span>${s.artist}</span>` : '';
-        trackHtml = `<div class="speaker-track">${titleSpan}${sep}${artistSpan}</div>`;
-      }
-      btn.innerHTML = `
-        <div class="speaker-icon">${speakerSvg}</div>
-        <div class="speaker-info">
-          <div class="speaker-name">${s.name}</div>
-          <div class="speaker-status">${s.playing ? "Now playing" : "Idle"}</div>
-          ${trackHtml}
-        </div>
-        ${s.playing ? '<div class="playing-dot"></div>' : ''}`;
-      btn.onclick = () => selectSpeaker(s.ip, s.name);
-      pickerEl.appendChild(btn);
-    });
+  // ── View switching ───────────────────────────────────
+  function hideAllViews() {
+    lyricsVp.style.display = "none";
+    statusEl.style.display = "none";
+    noLyricsEl.style.display = "none";
   }
-
-  function selectSpeaker(ip, name) {
-    selectedIp = ip;
-    selectedName = name;
-    pickerEl.style.display = "none";
-    roomLabelEl.textContent = name;
-    connectStream(ip);
+  function showStatus(iconKey, text, sub, withAction) {
+    hideAllViews(); hideSheet();
+    accentGlowEl.classList.remove("on");
+    if (!selectedIp) metaEl.style.display = "none";
+    statusEl.style.display = "flex";
+    statusIconEl.innerHTML = ICONS[iconKey] || ICONS.note;
+    statusTextEl.textContent = text;
+    statusSubEl.textContent = sub || "";
+    statusActionEl.style.display = withAction ? "inline-flex" : "none";
   }
-
-  // ── SSE stream ───────────────────────────────────────
-
-  function connectStream(ip) {
-    if (es) { es.close(); es = null; }
-    lines = []; activeIdx = -1; lastServerMs = 0;
-    lastReceivedMs = -1; stalePosCount = 0;
-    durationMs = 0;
-    lastArtist = null;
-    artistPanel.classList.remove("visible");
-    showStatus("note", "Connecting…", "");
-
-    es = new EventSource(`/stream?ip=${encodeURIComponent(ip)}`);
-
-    es.addEventListener("track_change", e => {
-      const data = JSON.parse(e.data);
-      renderTrack(data);
-      lastServerMs = 0;
-      lastServerTimestamp = Date.now();
-      if (!rafId) rafId = requestAnimationFrame(tick);
-    });
-
-    es.addEventListener("position", e => {
-      const data = JSON.parse(e.data);
-      if (data.position_ms === lastReceivedMs) {
-        stalePosCount++;
-        if (stalePosCount >= 3) setPlaying(false);
-      } else {
-        stalePosCount = 0;
-        lastReceivedMs = data.position_ms;
-        setPlaying(true);
-      }
-      lastServerMs = data.position_ms;
-      lastServerTimestamp = Date.now();
-      if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
-    });
-
-    es.addEventListener("waiting", () => {
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-      setPlaying(false);
-      showStatus("mute", "Nothing playing", "Start music on this speaker");
-      // Keep player bar visible so user can press play
-      if (selectedIp) showPlayerBar();
-    });
-
-    es.onerror = () => {
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-      showStatus("warn", "Reconnecting…", "");
-    };
-  }
-
-  // ── Display ──────────────────────────────────────────
-
   const ICONS = {
     note: `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`,
     mute: `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`,
     warn: `<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`,
   };
 
-  function showStatus(iconKey, text, sub) {
-    hidePlayerBar();
-    // Keep meta header (Rooms button) visible if a speaker is already selected
-    if (!selectedIp) {
-      metaEl.style.display = "none";
-    }
-    lyricsEl.style.display = "none";
-    statusEl.style.display = "flex";
-    statusIconEl.innerHTML = ICONS[iconKey] || ICONS.note;
-    statusTextEl.textContent = text;
-    statusSubEl.textContent = sub;
+  function setBackground(url) {
+    if (url) { bgEl.style.backgroundImage = `url('${url}')`; bgEl.style.display = "block"; accentGlowEl.classList.add("on"); }
+    else { bgEl.style.backgroundImage = "none"; bgEl.style.display = "none"; accentGlowEl.classList.remove("on"); }
   }
 
-  async function updateArtistPanel(artist, artUrl) {
-    if (!artist || artist === lastArtist) return;
-    lastArtist = artist;
-    artistPanel.classList.remove("visible");
+  // ── Lyrics blur-focus ────────────────────────────────
+  function styleLine(el, d) {
+    const ad = Math.abs(d);
+    let o, blur, color = "#fff", scale = 1, weight = 700, shadow = "none";
+    if (d === 0)      { o = 1;    blur = 0;   scale = 1.04; weight = 800; shadow = "0 0 34px var(--accent-glow)"; }
+    else if (d === -1){ o = 0.6;  blur = 0;   color = "rgba(255,255,255,0.62)"; }
+    else if (d === 1) { o = 0.55; blur = 1.2; color = "rgba(255,255,255,0.55)"; }
+    else if (ad === 2){ o = 0.3;  blur = 2.4; }
+    else if (ad === 3){ o = 0.17; blur = 3.4; }
+    else              { o = 0.08; blur = 4.4; }
+    el.style.opacity = o;
+    el.style.filter = `blur(${blur}px)`;
+    el.style.color = color;
+    el.style.transform = `scale(${scale})`;
+    el.style.fontWeight = weight;
+    el.style.textShadow = shadow;
+  }
+  function restyleLines() {
+    for (let i = 0; i < lines.length; i++) {
+      const el = document.getElementById(`line-${i}`);
+      if (el) styleLine(el, i - activeIdx);
+    }
+  }
+  function centerActive() {
+    const idx = activeIdx < 0 ? 0 : activeIdx;
+    const child = document.getElementById(`line-${idx}`);
+    if (!child) return;
+    const y = (lyricsVp.clientHeight / 2) - (lyricsEl.offsetTop) - (child.offsetTop + child.offsetHeight / 2);
+    lyricsEl.style.transform = `translateY(${y}px)`;
+  }
+
+  // ── Artist (used by no-lyrics state) ─────────────────
+  async function fetchArtist(artist, artUrl) {
+    if (!artist) return null;
     try {
       const params = new URLSearchParams({ name: artist, art_url: artUrl || "" });
       const r = await fetch(`/artist?${params}`);
-      const data = await r.json();
-      if (artist !== lastArtist) return; // artist changed while fetching
-      if (!data.bio && !data.image_url) return;
-      artistPanelName.textContent = artist;
-      artistBioEl.textContent = data.bio || "";
-      if (data.wiki_url) {
-        artistWikiLink.href = data.wiki_url;
-        artistWikiLink.style.display = "inline-block";
-      } else {
-        artistWikiLink.style.display = "none";
-      }
-      if (data.image_url) {
-        artistPhoto.src = data.image_url;
-        artistPhoto.style.display = "block";
-      } else {
-        artistPhoto.style.display = "none";
-      }
-      artistPanel.classList.add("visible");
-    } catch {
-      // silently skip if unavailable
-    }
+      return await r.json();
+    } catch { return null; }
   }
 
-  function setBackground(url) {
-    if (url) {
-      bgEl.style.backgroundImage = `url('${url}')`;
-    } else {
-      bgEl.style.backgroundImage = "none";
-    }
-  }
-
+  // ── Render track ─────────────────────────────────────
   function renderTrack(data) {
     titleEl.textContent = data.title || "Unknown";
     artistEl.textContent = data.artist || "";
     lines = data.lyrics || [];
     activeIdx = -1;
+    lastArtUrl = data.art_url || "";
 
-    // Album art
     if (data.art_url) {
-      artThumb.src = data.art_url;
+      artThumb.src = data.art_url; artThumb.style.visibility = "visible";
       setBackground(data.art_url);
-      bgEl.style.display = "block";
+      extractAccent(data.art_url);
     } else {
-      artThumb.style.display = "none";
-      bgEl.style.display = "none";
+      artThumb.style.visibility = "hidden";
       setBackground(null);
+      setAccent(...DEFAULT_ACCENT);
     }
 
     metaEl.style.display = "flex";
-    showPlayerBar();
     setPlaying(true);
     statusEl.style.display = "none";
-    updateArtistPanel(data.artist, data.art_url);
 
-    // Volume
-    if (data.volume != null) {
-      volSlider.value = data.volume;
-      lastVolume = data.volume;
-      updateVolIcon(data.volume);
-    }
+    if (data.volume != null) { volSlider.value = data.volume; lastVolume = data.volume; updateVolIcon(data.volume); }
 
-    // Progress bar
     durationMs = data.duration_ms || 0;
     if (durationMs > 0) {
-      progressWrap.style.display = "flex";
-      progressFill.style.transition = "none";
-      progressFill.style.width = "0%";
-    } else {
-      progressWrap.style.display = "none";
-    }
+      progressEl.classList.remove("hidden");
+      progressFill.style.transition = "none"; progressFill.style.width = "0%";
+      requestAnimationFrame(() => { progressFill.style.transition = "width 0.9s linear"; });
+    } else { progressEl.classList.add("hidden"); }
 
-    if (lines.length === 0) {
-      lyricsEl.style.display = "none";
-      showStatus("note", data.title || "Playing", "No lyrics available");
-      metaEl.style.display = "flex";
-      showPlayerBar();
-      return;
-    }
+    if (lines.length === 0) { showNoLyrics(data); return; }
 
+    hideAllViews();
+    lyricsVp.style.display = "block";
     lyricsEl.innerHTML = "";
     lines.forEach((l, i) => {
       const div = document.createElement("div");
-      div.className = "line";
-      div.id = `line-${i}`;
+      div.className = "line"; div.id = `line-${i}`;
       div.textContent = l.text || " ";
       lyricsEl.appendChild(div);
     });
-    lyricsEl.style.display = "flex";
+    restyleLines();
+    requestAnimationFrame(centerActive);
+    showSheet();
+  }
+
+  async function showNoLyrics(data) {
+    hideAllViews();
+    metaEl.style.display = "flex";
+    noLyricsTitle.textContent = data.title || "";
+    noLyricsArtist.textContent = data.artist || "";
+    if (data.art_url) { noLyricsArt.src = data.art_url; noLyricsArt.style.visibility = "visible"; }
+    else { noLyricsArt.style.visibility = "hidden"; }
+    noLyricsBio.textContent = "";
+    noLyricsEl.style.display = "flex";
+    showSheet();
+    const info = await fetchArtist(data.artist, data.art_url);
+    if (info && info.bio && (data.title === titleEl.textContent)) {
+      noLyricsBio.textContent = info.bio.length > 240 ? info.bio.slice(0, 237) + "…" : info.bio;
+    }
   }
 
   function updateActive(pMs) {
     if (lines.length === 0) return;
     let lo = 0, hi = lines.length - 1, idx = -1;
-    while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      if (lines[mid].time_ms <= pMs) { idx = mid; lo = mid + 1; }
-      else hi = mid - 1;
-    }
+    while (lo <= hi) { const mid = (lo + hi) >> 1; if (lines[mid].time_ms <= pMs) { idx = mid; lo = mid + 1; } else hi = mid - 1; }
     if (idx === activeIdx) return;
-
-    if (activeIdx >= 0) {
-      const prev = document.getElementById(`line-${activeIdx}`);
-      if (prev) { prev.classList.remove("active"); prev.classList.add("recent"); }
-    }
-    if (activeIdx > 1) {
-      const older = document.getElementById(`line-${activeIdx - 1}`);
-      if (older) older.classList.remove("recent");
-    }
-
     activeIdx = idx;
-    if (activeIdx >= 0) {
-      const el = document.getElementById(`line-${activeIdx}`);
-      if (el) {
-        el.classList.add("active");
-        el.classList.remove("recent");
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
-    }
+    restyleLines();
+    centerActive();
   }
 
   function tick() {
     const posMs = lastServerMs + (Date.now() - lastServerTimestamp);
     updateActive(posMs);
-
     if (durationMs > 0) {
-      const pct = Math.min(100, (posMs / durationMs) * 100);
-      progressFill.style.width = pct + "%";
-
+      progressFill.style.width = Math.min(100, (posMs / durationMs) * 100) + "%";
       const now = Date.now();
       if (now - lastTimeLabelUpdate >= 1000) {
         lastTimeLabelUpdate = now;
         timeElapsedEl.textContent = formatTime(posMs);
-        const rem = Math.max(0, durationMs - posMs);
-        timeRemainingEl.textContent = "-" + formatTime(rem);
+        timeRemainingEl.textContent = "-" + formatTime(Math.max(0, durationMs - posMs));
       }
     }
-
     rafId = requestAnimationFrame(tick);
   }
 
+  // ── SSE ──────────────────────────────────────────────
+  function connectStream(ip) {
+    if (es) { es.close(); es = null; }
+    lines = []; activeIdx = -1; lastServerMs = 0; lastReceivedMs = -1; stalePosCount = 0; durationMs = 0; lastArtist = null;
+    showStatus("note", "Connecting…", "", false);
+
+    es = new EventSource(`/stream?ip=${encodeURIComponent(ip)}`);
+    es.addEventListener("track_change", e => {
+      renderTrack(JSON.parse(e.data));
+      lastServerMs = 0; lastServerTimestamp = Date.now();
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    });
+    es.addEventListener("position", e => {
+      const data = JSON.parse(e.data);
+      if (data.position_ms === lastReceivedMs) { stalePosCount++; if (stalePosCount >= 3) setPlaying(false); }
+      else { stalePosCount = 0; lastReceivedMs = data.position_ms; setPlaying(true); }
+      lastServerMs = data.position_ms; lastServerTimestamp = Date.now();
+      if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
+    });
+    es.addEventListener("waiting", () => {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      setPlaying(false);
+      showStatus("note", "Nothing playing", `Start music in ${selectedName || "this room"} and the lyrics will follow along here, line by line.`, true);
+      statusActionEl.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Browse music`;
+      statusActionEl.onclick = openPicker;
+      if (selectedIp) showSheet();
+    });
+    es.onerror = () => { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } showStatus("warn", "Reconnecting…", "", false); };
+  }
+
+  // ── Rooms / multi-room ───────────────────────────────
+  function openPicker() { renderPicker(); pickerEl.classList.add("open"); pickerBackdrop.classList.add("open"); }
+  function closePicker() { pickerEl.classList.remove("open"); pickerBackdrop.classList.remove("open"); }
+
+  function selectSpeaker(ip, name) {
+    selectedIp = ip; selectedName = name;
+    try { localStorage.setItem("sonos_ip", ip); localStorage.setItem("sonos_name", name); } catch {}
+    roomLabelEl.textContent = name;
+    closePicker();
+    connectStream(ip);
+  }
+
+  // ── Multi-room grouping ──────────────────────────────
+  // Real Sonos grouping, backed by:
+  //   POST /group?ip=<coordinatorIp>   body: { action: "join"|"leave", member: "<ip>" }
+  //   POST /volume?ip=<ip>             body: { level, group?: true }   (group=true → coordinator group volume)
+  // /speakers returns coordinator_ip / group_members / volume so the sheet reflects live group state.
+  // Failures are swallowed (next /speakers fetch corrects the UI), matching /control + /volume.
+  async function setGroup(memberIp, join) {
+    const coord = coordinatorIp || selectedIp;
+    if (!coord) return;
+    try {
+      await fetch(`/group?ip=${encodeURIComponent(coord)}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: join ? "join" : "leave", member: memberIp }),
+      });
+    } catch {}
+    setTimeout(renderPicker, 700); // let the household topology settle, then reflect it
+  }
+  async function sendVolumeTo(ip, level) {
+    try { await fetch(`/volume?ip=${encodeURIComponent(ip)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ level }) }); } catch {}
+  }
+  async function setGroupVolume(ip, level) {
+    try { await fetch(`/volume?ip=${encodeURIComponent(ip)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ level, group: true }) }); } catch {}
+  }
+
+  async function renderPicker() {
+    let speakers;
+    try { speakers = await fetch("/speakers").then(r => r.json()); }
+    catch { pickerScroll.innerHTML = `<div class="picker-empty">Could not load speakers</div>`; return; }
+    if (!speakers.length) { pickerScroll.innerHTML = `<div class="picker-empty">No speakers found</div>`; return; }
+
+    // Anchor the group on the room we're following; use its real coordinator from the household topology.
+    const anchor = speakers.find(s => s.ip === selectedIp) || speakers.find(s => s.playing) || speakers[0];
+    coordinatorIp = (anchor && anchor.coordinator_ip) || (anchor && anchor.ip) || selectedIp;
+    const coordinator = speakers.find(s => s.ip === coordinatorIp) || anchor;
+
+    const members = speakers.filter(s => (s.coordinator_ip || s.ip) === coordinatorIp);
+    const others = speakers.filter(s => !members.includes(s));
+    const vol = v => (v == null ? 50 : v);
+    const groupVol = members.length ? Math.round(members.reduce((a, m) => a + vol(m.volume), 0) / members.length) : 50;
+    pickerScroll.innerHTML = "";
+
+    if (coordinator) {
+      const title = members.length > 1 ? `${coordinator.name} +${members.length - 1}` : coordinator.name;
+      const playing = coordinator.playing;
+      const card = document.createElement("div");
+      card.className = "group-card";
+      let nowHtml = "";
+      if (playing && (coordinator.title || coordinator.artist)) {
+        nowHtml = `<div class="group-now">
+            <img class="group-now-art"${lastArtUrl ? ` src="${esc(lastArtUrl)}"` : ''} onerror="this.style.visibility='hidden'">
+            <div style="min-width:0">
+              <div class="group-now-title">${esc(coordinator.title || "")}</div>
+              <div class="group-now-artist">${esc(coordinator.artist || "")}</div>
+            </div></div>`;
+      }
+      const eqHtml = playing ? `<div class="eq playing" style="height:13px"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>` : "";
+      const ordered = members.slice().sort((a, b) => (b.ip === coordinatorIp) - (a.ip === coordinatorIp));
+      const membersHtml = ordered.map(m => {
+        const isMain = m.ip === coordinatorIp;
+        return `<div class="member">
+          <div class="member-info">
+            <div class="member-name-row"><span class="member-name">${esc(m.name)}</span>${isMain ? '<span class="main-tag">MAIN</span>' : ''}</div>
+            <div class="member-vol">
+              <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+              <input type="range" min="0" max="100" value="${vol(m.volume)}" class="mini-slider" data-vol="${esc(m.ip)}">
+            </div>
+          </div>
+          ${isMain ? '' : `<button class="remove-btn" data-leave="${esc(m.ip)}" title="Remove from group"><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></button>`}
+        </div>`;
+      }).join("");
+      const groupVolHtml = members.length > 1
+        ? `<div class="vol-row"><span class="vol-label">Group vol</span><input type="range" min="0" max="100" value="${groupVol}" class="mini-slider" id="group-vol-slider"></div><div class="group-divider"></div>`
+        : "";
+      card.innerHTML = `
+        <div class="group-top">
+          <div class="group-ic"><svg viewBox="0 0 24 24"><path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/></svg></div>
+          <div style="flex:1;min-width:0">
+            <div class="group-title">${esc(title)}</div>
+            <div class="group-status">${playing ? "Now playing" : "Idle"}</div>
+          </div>
+          ${eqHtml}
+        </div>
+        ${nowHtml}
+        ${groupVolHtml}
+        ${membersHtml}`;
+      pickerScroll.appendChild(card);
+      const gv = card.querySelector("#group-vol-slider");
+      if (gv) gv.addEventListener("change", () => setGroupVolume(coordinatorIp, parseInt(gv.value)));
+      card.querySelectorAll("[data-vol]").forEach(inp => inp.addEventListener("change", () => sendVolumeTo(inp.getAttribute("data-vol"), parseInt(inp.value))));
+      card.querySelectorAll("[data-leave]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); setGroup(b.getAttribute("data-leave"), false); }));
+    }
+
+    if (others.length) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `<div class="add-label">Add rooms</div>`;
+      others.forEach(s => {
+        const row = document.createElement("div");
+        row.className = "room-row" + (s.playing ? " room-playing" : "");
+        let statusHtml = s.playing && s.title
+          ? `<span class="rt-title">${esc(s.title)}</span>${s.artist ? " · " + esc(s.artist) : ""}`
+          : (s.playing ? "Now playing" : "Idle");
+        row.innerHTML = `
+          <div class="room-ic"><svg viewBox="0 0 24 24"><path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/></svg></div>
+          <div class="room-info"><div class="room-name">${esc(s.name)}</div><div class="room-status">${statusHtml}</div></div>
+          <button class="add-btn" title="Add to group"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg></button>`;
+        // Tap a row to follow that room's lyrics; tap + to add it to the current group.
+        row.addEventListener("click", () => selectSpeaker(s.ip, s.name));
+        row.querySelector(".add-btn").addEventListener("click", e => { e.stopPropagation(); setGroup(s.ip, true); });
+        wrap.appendChild(row);
+      });
+      pickerScroll.appendChild(wrap);
+    }
+  }
+
   // ── Boot ─────────────────────────────────────────────
-  showPicker();
+  (function boot() {
+    let savedIp = null, savedName = null;
+    try { savedIp = localStorage.getItem("sonos_ip"); savedName = localStorage.getItem("sonos_name"); } catch {}
+    if (savedIp) { selectSpeaker(savedIp, savedName || ""); }
+    else { showStatus("note", "Choose a room", "Pick a Sonos speaker to start following its lyrics.", true); openPicker(); }
+  })();
 </script>
 </body>
 </html>

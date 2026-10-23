@@ -238,7 +238,14 @@ def get_zone_name(ip: str) -> str:
 
 
 def get_speakers(ips: list[str]) -> list[dict]:
-    """Return [{ip, name, playing}] for all IPs, fetched in parallel."""
+    """Return [{ip, name, playing, title, artist, volume, coordinator_ip, group_members, is_coordinator}]."""
+    # One topology query for the whole household; fall back to per-speaker groups on failure.
+    topo: dict = {}
+    for ip in ips:
+        topo = get_zone_group_state(ip)
+        if topo:
+            break
+
     def _probe(ip):
         name = get_zone_name(ip)
         try:
@@ -250,10 +257,186 @@ def get_speakers(ips: list[str]) -> list[dict]:
             playing = False
             title = ""
             artist = ""
-        return {"ip": ip, "name": name, "playing": playing, "title": title, "artist": artist}
+        try:
+            volume = get_volume(ip)
+        except SonosUnavailableError:
+            volume = None
+        g = topo.get(ip, {})
+        coordinator_ip = g.get("coordinator_ip", ip)
+        members = [m for m in g.get("members", [ip]) if m in ips] or [ip]
+        return {
+            "ip": ip,
+            "name": name,
+            "playing": playing,
+            "title": title,
+            "artist": artist,
+            "volume": volume,
+            "coordinator_ip": coordinator_ip,
+            "group_members": members,
+            "is_coordinator": coordinator_ip == ip,
+        }
 
     with ThreadPoolExecutor(max_workers=len(ips)) as pool:
         return sorted(pool.map(_probe, ips), key=lambda s: s["name"])
+
+
+def _device_uid(ip: str) -> str:
+    """Return the speaker's RINCON UID (e.g. RINCON_XXXXXXXXXXXX01400)."""
+    try:
+        resp = requests.get(f"http://{ip}:1400/xml/device_description.xml", timeout=2)
+        resp.raise_for_status()
+        m = re.search(r"<UDN>uuid:(RINCON_[0-9A-Za-z]+)</UDN>", resp.text)
+        if not m:
+            raise SonosUnavailableError("Could not read device UID")
+        return m.group(1)
+    except SonosUnavailableError:
+        raise
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
+def join_group(member_ip: str, coordinator_ip: str) -> None:
+    """Group member_ip under coordinator_ip so they play in sync.
+
+    Sets the member's AVTransport URI to x-rincon:<coordinator-uid>, the standard
+    Sonos mechanism for joining a group. Raises SonosUnavailableError on failure.
+    """
+    uid = _device_uid(coordinator_ip)
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:SetAVTransportURI xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">'
+        "<InstanceID>0</InstanceID>"
+        f"<CurrentURI>x-rincon:{uid}</CurrentURI>"
+        "<CurrentURIMetaData></CurrentURIMetaData>"
+        "</u:SetAVTransportURI>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:AVTransport:1#SetAVTransportURI"',
+    }
+    url = f"http://{member_ip}:1400/MediaRenderer/AVTransport/Control"
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=3)
+        resp.raise_for_status()
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
+def leave_group(member_ip: str) -> None:
+    """Remove member_ip from its group, making it a standalone speaker.
+
+    Raises SonosUnavailableError on failure.
+    """
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:BecomeCoordinatorOfStandaloneGroup'
+        ' xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">'
+        "<InstanceID>0</InstanceID>"
+        "</u:BecomeCoordinatorOfStandaloneGroup>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:AVTransport:1#BecomeCoordinatorOfStandaloneGroup"',
+    }
+    url = f"http://{member_ip}:1400/MediaRenderer/AVTransport/Control"
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=3)
+        resp.raise_for_status()
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
+def set_group_volume(coordinator_ip: str, level: int) -> None:
+    """Set the whole group's volume (0–100) via the coordinator, scaling members
+    proportionally. Raises SonosUnavailableError on failure.
+    """
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:SetGroupVolume xmlns:u="urn:schemas-upnp-org:service:GroupRenderingControl:1">'
+        "<InstanceID>0</InstanceID>"
+        f"<DesiredVolume>{level}</DesiredVolume>"
+        "</u:SetGroupVolume>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:GroupRenderingControl:1#SetGroupVolume"',
+    }
+    url = f"http://{coordinator_ip}:1400/MediaRenderer/GroupRenderingControl/Control"
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=2)
+        resp.raise_for_status()
+    except Exception as e:
+        raise SonosUnavailableError(str(e)) from e
+
+
+def get_zone_group_state(ip: str) -> dict:
+    """Query the household's group topology from one speaker.
+
+    Returns {ip: {"uid", "coordinator_ip", "members": [ips]}}. Returns {} on failure
+    so callers can fall back to treating each speaker as its own group.
+    """
+    body = (
+        '<?xml version="1.0"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+        ' s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+        "<s:Body>"
+        '<u:GetZoneGroupState xmlns:u="urn:schemas-upnp-org:service:ZoneGroupTopology:1">'
+        "</u:GetZoneGroupState>"
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    headers = {
+        "Content-Type": 'text/xml; charset="utf-8"',
+        "SOAPAction": '"urn:schemas-upnp-org:service:ZoneGroupTopology:1#GetZoneGroupState"',
+    }
+    url = f"http://{ip}:1400/ZoneGroupTopology/Control"
+    result: dict = {}
+    try:
+        resp = requests.post(url, data=body, headers=headers, timeout=3)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        ns_soap = "http://schemas.xmlsoap.org/soap/envelope/"
+        ns_zt = "urn:schemas-upnp-org:service:ZoneGroupTopology:1"
+        info = root.find(f"{{{ns_soap}}}Body/{{{ns_zt}}}GetZoneGroupStateResponse")
+        state = info.findtext("ZoneGroupState", "") if info is not None else ""
+        if not state:
+            return {}
+        groups_root = ET.fromstring(state)  # inner XML is already unescaped by ET
+        for zg in groups_root.iter("ZoneGroup"):
+            coord_uid = zg.get("Coordinator")
+            entries = []
+            coord_ip = None
+            for zm in zg.findall("ZoneGroupMember"):
+                uid = zm.get("UUID")
+                loc = zm.get("Location") or ""
+                m = re.search(r"http://([0-9.]+):1400", loc)
+                mip = m.group(1) if m else None
+                if not mip:
+                    continue
+                entries.append((uid, mip))
+                if uid == coord_uid:
+                    coord_ip = mip
+            member_ips = [mip for (_, mip) in entries]
+            for (uid, mip) in entries:
+                result[mip] = {"uid": uid, "coordinator_ip": coord_ip or mip, "members": member_ips}
+    except Exception:
+        return {}
+    return result
 
 
 def find_playing(ips: list[str]) -> dict:
