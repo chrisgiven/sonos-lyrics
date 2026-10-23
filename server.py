@@ -13,7 +13,10 @@ from sonos import (
     get_current_track,
     get_speakers,
     get_volume,
+    join_group,
+    leave_group,
     play_uri,
+    set_group_volume,
     set_volume,
     transport_command,
 )
@@ -210,7 +213,31 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
         if not isinstance(level, int) or not 0 <= level <= 100:
             return jsonify({"error": "level must be 0–100"}), 400
         try:
-            set_volume(ip, level)
+            # {"group": true} sets the whole group's volume via the coordinator.
+            if data.get("group"):
+                set_group_volume(ip, level)
+            else:
+                set_volume(ip, level)
+            return "", 204
+        except SonosUnavailableError as e:
+            return jsonify({"error": str(e)}), 503
+
+    @app.post("/group")
+    def group():
+        # ip = coordinator (the room being followed). body: {action, member}
+        ip = request.args.get("ip")
+        if ip not in _speakers:
+            return jsonify({"error": "unknown speaker"}), 400
+        data = request.get_json(silent=True) or {}
+        action = data.get("action", "")
+        member = data.get("member", "")
+        if action not in ("join", "leave") or not isinstance(member, str) or not member:
+            return jsonify({"error": "invalid group request"}), 400
+        try:
+            if action == "join":
+                join_group(member, ip)
+            else:
+                leave_group(member)
             return "", 204
         except SonosUnavailableError as e:
             return jsonify({"error": str(e)}), 503

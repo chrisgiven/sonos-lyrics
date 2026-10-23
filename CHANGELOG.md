@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-23 (merge)
+- merge: speaker grouping (join/leave, group volume) and the redesigned UI (album-art accent, blur-focus lyrics, Rooms sheet), recovered from uncommitted edits on the NAS clone
+- feat: Favorites and the new lyric states (looking up / plain / instrumental) ported into the redesigned UI; the empty-room "Browse music" button opens Favorites
+- fix: album art for streaming tracks (relative `/getaa` paths now point at the speaker); art retries once while the speaker caches it
+- chore: remove a design-tool preview script that had been left in index.html
+- change: the redesign drops the artist bio + photo panel under the lyrics; the bio now shows only on the no-lyrics screen
+- test: grouping (topology parsing, join/leave, group volume, /group route)
+
 ## 2026-10-23
 - feat: lyric lookup sends track duration, retries with version tags stripped ("- Remastered 2011", "(Live)", "feat. X"), then falls back to LRCLIB search picking the closest-length match
 - feat: show plain (unsynced) lyrics and "Instrumental" instead of "No lyrics available"

@@ -5,7 +5,7 @@ from sonos import get_current_track, SonosUnavailableError, _parse_metadata, tra
 
 
 def _soap_response(title="Bohemian Rhapsody", artist="Queen", album="A Night at the Opera",
-                   reltime="0:01:23", duration="3:32"):
+                   reltime="0:01:23", duration="3:32", art=""):
     didl = (
         '&lt;DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/"'
         ' xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"'
@@ -14,6 +14,7 @@ def _soap_response(title="Bohemian Rhapsody", artist="Queen", album="A Night at 
         f'&lt;dc:title&gt;{title}&lt;/dc:title&gt;'
         f'&lt;dc:creator&gt;{artist}&lt;/dc:creator&gt;'
         f'&lt;upnp:album&gt;{album}&lt;/upnp:album&gt;'
+        + (f'&lt;upnp:albumArtURI&gt;{html.escape(html.escape(art))}&lt;/upnp:albumArtURI&gt;' if art else '') +
         '&lt;/item&gt;&lt;/DIDL-Lite&gt;'
     )
     return f"""<?xml version="1.0"?>
@@ -146,3 +147,81 @@ def test_parse_metadata_stream_content():
     assert title == "Yesterday"
     assert artist == "The Beatles"
     assert album == "Help!"
+
+
+# ── Grouping ──
+
+from sonos import get_zone_group_state, join_group, leave_group, set_group_volume
+
+
+def _zone_state_response():
+    inner = (
+        '<ZoneGroupState><ZoneGroups>'
+        '<ZoneGroup Coordinator="RINCON_A" ID="RINCON_A:1">'
+        '<ZoneGroupMember UUID="RINCON_A" Location="http://192.168.1.10:1400/xml/device_description.xml" ZoneName="Office"/>'
+        '<ZoneGroupMember UUID="RINCON_B" Location="http://192.168.1.11:1400/xml/device_description.xml" ZoneName="Kitchen"/>'
+        '</ZoneGroup>'
+        '<ZoneGroup Coordinator="RINCON_C" ID="RINCON_C:1">'
+        '<ZoneGroupMember UUID="RINCON_C" Location="http://192.168.1.12:1400/xml/device_description.xml" ZoneName="Den"/>'
+        '</ZoneGroup>'
+        '</ZoneGroups></ZoneGroupState>'
+    )
+    return f"""<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Body>
+    <u:GetZoneGroupStateResponse xmlns:u="urn:schemas-upnp-org:service:ZoneGroupTopology:1">
+      <ZoneGroupState>{html.escape(inner)}</ZoneGroupState>
+    </u:GetZoneGroupStateResponse>
+  </s:Body>
+</s:Envelope>"""
+
+
+def test_get_zone_group_state_maps_members_to_coordinator():
+    with patch("sonos.requests.post", return_value=Mock(status_code=200, text=_zone_state_response(),
+                                                         raise_for_status=Mock())):
+        topo = get_zone_group_state("192.168.1.10")
+    assert topo["192.168.1.11"]["coordinator_ip"] == "192.168.1.10"
+    assert topo["192.168.1.10"]["members"] == ["192.168.1.10", "192.168.1.11"]
+    assert topo["192.168.1.12"] == {"uid": "RINCON_C", "coordinator_ip": "192.168.1.12", "members": ["192.168.1.12"]}
+
+
+def test_get_zone_group_state_returns_empty_on_failure():
+    with patch("sonos.requests.post", side_effect=Exception("down")):
+        assert get_zone_group_state("192.168.1.10") == {}
+
+
+def test_join_group_points_member_at_coordinator_uid():
+    desc = Mock(status_code=200, text="<root><UDN>uuid:RINCON_A01400</UDN></root>", raise_for_status=Mock())
+    with patch("sonos.requests.get", return_value=desc), \
+         patch("sonos.requests.post", return_value=Mock(raise_for_status=Mock())) as post:
+        join_group("192.168.1.11", "192.168.1.10")
+    url = post.call_args[0][0]
+    assert url == "http://192.168.1.11:1400/MediaRenderer/AVTransport/Control"
+    assert "<CurrentURI>x-rincon:RINCON_A01400</CurrentURI>" in post.call_args[1]["data"]
+
+
+def test_leave_group_raises_when_speaker_unreachable():
+    with patch("sonos.requests.post", side_effect=Exception("down")):
+        with pytest.raises(SonosUnavailableError):
+            leave_group("192.168.1.11")
+
+
+def test_set_group_volume_targets_coordinator():
+    with patch("sonos.requests.post", return_value=Mock(raise_for_status=Mock())) as post:
+        set_group_volume("192.168.1.10", 30)
+    assert post.call_args[0][0].endswith(":1400/MediaRenderer/GroupRenderingControl/Control")
+    assert "<DesiredVolume>30</DesiredVolume>" in post.call_args[1]["data"]
+
+
+def test_get_current_track_makes_relative_art_absolute():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text=_soap_response(art="/getaa?s=1&u=x-sonos-http%3asong"))
+        result = get_current_track("192.168.1.10")
+    assert result["art_url"] == "http://192.168.1.10:1400/getaa?s=1&u=x-sonos-http%3asong"
+
+
+def test_get_current_track_keeps_absolute_art():
+    with patch("sonos.requests.post") as mock_post:
+        mock_post.return_value = Mock(status_code=200, text=_soap_response(art="https://img.example/a.jpg"))
+        result = get_current_track("192.168.1.10")
+    assert result["art_url"] == "https://img.example/a.jpg"

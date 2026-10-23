@@ -137,3 +137,31 @@ def test_volume_returns_400_for_non_integer(client):
                        json={"level": "loud"},
                        content_type="application/json")
     assert resp.status_code == 400
+
+
+def test_group_join_calls_join_group(client):
+    with patch("server.join_group") as join:
+        resp = client.post("/group?ip=192.168.1.10", json={"action": "join", "member": "192.168.1.11"})
+    assert resp.status_code == 204
+    join.assert_called_once_with("192.168.1.11", "192.168.1.10")
+
+
+def test_group_leave_calls_leave_group(client):
+    with patch("server.leave_group") as leave:
+        resp = client.post("/group?ip=192.168.1.10", json={"action": "leave", "member": "192.168.1.11"})
+    assert resp.status_code == 204
+    leave.assert_called_once_with("192.168.1.11")
+
+
+def test_group_rejects_bad_request(client):
+    assert client.post("/group?ip=192.168.1.10", json={"action": "merge", "member": "x"}).status_code == 400
+    assert client.post("/group?ip=192.168.1.10", json={"action": "join"}).status_code == 400
+    assert client.post("/group?ip=10.0.0.1", json={"action": "join", "member": "x"}).status_code == 400
+
+
+def test_volume_group_flag_sets_group_volume(client):
+    with patch("server.set_group_volume") as group_vol, patch("server.set_volume") as vol:
+        resp = client.post("/volume?ip=192.168.1.10", json={"level": 40, "group": True})
+    assert resp.status_code == 204
+    group_vol.assert_called_once_with("192.168.1.10", 40)
+    vol.assert_not_called()
