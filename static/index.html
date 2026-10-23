@@ -177,6 +177,25 @@
     color: rgba(255,255,255,0.5);
   }
 
+  /* Unsynced lyrics: static, readable text instead of the karaoke scroll */
+  #lyrics.plain {
+    padding: 24px 24px calc(80px + 24px);
+    gap: 6px;
+  }
+  #lyrics.plain .line {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+  }
+  #lyrics.plain .line.stanza-break { height: 14px; }
+  #lyrics-note {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
   /* ── Status screen ── */
   #status {
     position: relative; z-index: 10;
@@ -899,6 +918,13 @@
       if (!rafId) rafId = requestAnimationFrame(tick);
     });
 
+    es.addEventListener("lyrics", e => {
+      const data = JSON.parse(e.data);
+      if (data.title !== titleEl.textContent || data.artist !== artistEl.textContent) return;
+      renderLyrics(data);
+      if (lines.length > 0 && !rafId) rafId = requestAnimationFrame(tick);
+    });
+
     es.addEventListener("position", e => {
       const data = JSON.parse(e.data);
       if (data.position_ms === lastReceivedMs) {
@@ -990,9 +1016,6 @@
   function renderTrack(data) {
     titleEl.textContent = data.title || "Unknown";
     artistEl.textContent = data.artist || "";
-    lines = data.lyrics || [];
-    activeIdx = -1;
-
     // Album art
     if (data.art_url) {
       artThumb.src = data.art_url;
@@ -1027,20 +1050,58 @@
       progressWrap.style.display = "none";
     }
 
+    renderLyrics(data);
+  }
+
+  // showStatus() hides the progress bar; a track with a known length should keep it
+  function showProgress() {
+    if (durationMs > 0) progressWrap.style.display = "flex";
+  }
+
+  function renderLyrics(data) {
+    showProgress();
+    lines = data.lyrics || [];
+    activeIdx = -1;
+    lyricsEl.innerHTML = "";
+    lyricsEl.classList.remove("plain");
+
     if (lines.length === 0) {
-      lyricsEl.style.display = "none";
-      showStatus("note", data.title || "Playing", "No lyrics available");
+      if (data.plain_lyrics) {
+        renderPlainLyrics(data.plain_lyrics);
+        return;
+      }
+      const sub = data.lyrics_pending ? "Looking for lyrics…"
+        : data.instrumental ? "Instrumental"
+        : "No lyrics available";
+      showStatus("note", data.title || "Playing", sub);
       metaEl.style.display = "flex";
       showPlayerBar();
+      showProgress();
       return;
     }
 
-    lyricsEl.innerHTML = "";
+    statusEl.style.display = "none";
     lines.forEach((l, i) => {
       const div = document.createElement("div");
       div.className = "line";
       div.id = `line-${i}`;
       div.textContent = l.text || " ";
+      lyricsEl.appendChild(div);
+    });
+    lyricsEl.style.display = "flex";
+  }
+
+  function renderPlainLyrics(text) {
+    statusEl.style.display = "none";
+    lyricsEl.classList.add("plain");
+    const note = document.createElement("div");
+    note.id = "lyrics-note";
+    note.textContent = "Lyrics · not synced";
+    lyricsEl.appendChild(note);
+    text.split("\n").forEach(t => {
+      const div = document.createElement("div");
+      div.className = t.trim() ? "line" : "line stanza-break";
+      div.textContent = t;
       lyricsEl.appendChild(div);
     });
     lyricsEl.style.display = "flex";

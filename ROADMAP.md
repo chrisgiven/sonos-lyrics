@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Next up
-- [ ] Resolve LRCLIB timeouts from home network (proxy? mirror? cache?) — main blocker
-- [ ] Local lyrics cache so repeat plays don't refetch
+- [ ] Manual sync nudge (±0.5s per track, saved with the cached lyrics)
+- [ ] Local `.lrc` override folder for songs LRCLIB gets wrong
 - [ ] Queue view (see what's playing next)
 
 ## Ideas
@@ -10,6 +10,8 @@
 - [ ] Chromecast-style full-screen display mode for the living-room TV
 
 ## Done
+- [x] Smarter lyric lookup: duration matching, title cleanup, search fallback, plain/instrumental, SQLite cache — 2026-10-23
+- [x] LRCLIB timeouts — resolved upstream; reachable again (verified 2026-10-23)
 - [x] Sonos Favorites browse + play — 2026-06-20
 - [x] Artist bio + photo panel — 2026-06-17
 - [x] Playback controls (transport, progress, volume) — 2026-06-12

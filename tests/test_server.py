@@ -34,17 +34,62 @@ def test_stream_emits_waiting_when_sonos_down(client):
     assert "waiting" in chunk
 
 
-def test_stream_emits_track_change_on_new_track(client):
-    track = {"title": "Yesterday", "artist": "Beatles", "album": "Help!", "position_ms": 0}
-    lyrics = [{"time_ms": 1000, "text": "Yesterday"}]
-    with patch("server.get_current_track", return_value=track), \
-         patch("server.fetch_lyrics", return_value=lyrics):
+def _events(resp, n):
+    out = []
+    for raw in resp.response:
+        chunk = raw.decode()
+        if chunk.startswith(":"):
+            continue
+        event = chunk.split("event: ", 1)[1].split("\n", 1)[0]
+        out.append((event, json.loads(chunk.split("data: ", 1)[1])))
+        if len(out) == n:
+            return out
+    return out
+
+
+LYRICS = {"synced": [{"time_ms": 1000, "text": "Yesterday"}], "plain": "Yesterday", "instrumental": False}
+TRACK = {"title": "Yesterday", "artist": "Beatles", "album": "Help!", "position_ms": 0, "duration_ms": 125000}
+
+
+def test_stream_sends_cached_lyrics_with_track_change(client):
+    with patch("server.get_current_track", return_value=TRACK), \
+         patch("server.get_cached_lyrics", return_value=LYRICS), \
+         patch("server.fetch_lyrics") as fetch:
         with client.get("/stream", buffered=False) as resp:
-            chunk = next(resp.response).decode()
-    assert "track_change" in chunk
-    data = json.loads(chunk.split("data: ", 1)[1])
+            [(event, data)] = _events(resp, 1)
+    assert event == "track_change"
     assert data["title"] == "Yesterday"
     assert data["lyrics"][0]["text"] == "Yesterday"
+    assert data["plain_lyrics"] == "Yesterday"
+    assert data["lyrics_pending"] is False
+    fetch.assert_not_called()
+
+
+def test_stream_fetches_uncached_lyrics_in_background(client):
+    with patch("server.get_current_track", return_value=TRACK), \
+         patch("server.get_cached_lyrics", return_value=None), \
+         patch("server.fetch_lyrics", return_value=LYRICS) as fetch:
+        with client.get("/stream", buffered=False) as resp:
+            events = _events(resp, 2)
+    track_change = next(d for e, d in events if e == "track_change")
+    assert track_change["lyrics_pending"] is True
+    assert track_change["lyrics"] == []
+    lyrics_event = next(d for e, d in events if e == "lyrics")
+    assert lyrics_event["title"] == "Yesterday"
+    assert lyrics_event["lyrics"][0]["text"] == "Yesterday"
+    fetch.assert_called_once_with("Beatles", "Yesterday", 125000)
+
+
+def test_late_joiner_gets_current_track(app):
+    with patch("server.get_current_track", return_value=TRACK), \
+         patch("server.get_cached_lyrics", return_value=LYRICS):
+        first, second = app.test_client(), app.test_client()
+        with first.get("/stream", buffered=False) as r1:
+            _events(r1, 1)
+            with second.get("/stream", buffered=False) as r2:
+                [(event, data)] = _events(r2, 1)
+    assert event == "track_change"
+    assert data["title"] == "Yesterday"
 
 
 def test_control_play_calls_transport_command(client):

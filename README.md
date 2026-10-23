@@ -5,7 +5,8 @@ Real-time synced lyrics for whatever your Sonos speakers are playing. A local Fl
 ## Features
 
 - Speaker picker with room navigation and per-speaker now-playing info
-- Synced lyric scrolling (LRC timing) with graceful fallback when no lyrics exist
+- Synced lyric scrolling (LRC timing); falls back to plain lyrics or "Instrumental"
+- Smart LRCLIB matching (duration, remaster/live/feat. tag cleanup, search fallback) with an on-disk cache
 - Playback controls: play/pause/skip, progress bar, volume slider
 - Album art with MusicBrainz/Cover Art Archive fallback
 - Artist bio + photo panel (Wikipedia)

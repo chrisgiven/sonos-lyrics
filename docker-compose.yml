@@ -6,3 +6,7 @@ services:
     environment:
       - SONOS_IP=192.168.1.35,192.168.1.61,192.168.1.241,192.168.1.47,192.168.1.160,192.168.1.33,192.168.1.173,192.168.1.39,192.168.1.238
       - PORT=5001
+      - LYRICS_CACHE_PATH=/app/cache/lyrics.db
+    volumes:
+      # Lyrics cache survives rebuilds
+      - ./cache:/app/cache

@@ -6,11 +6,10 @@ import time
 
 from flask import Flask, Response, jsonify, request, stream_with_context
 
-from lyrics import fetch_album_art, fetch_artist_info, fetch_lyrics
+from lyrics import fetch_album_art, fetch_artist_info, fetch_lyrics, get_cached_lyrics
 from sonos import (
     SonosUnavailableError,
     browse_favorites,
-    find_playing,
     get_current_track,
     get_speakers,
     get_volume,
@@ -34,7 +33,8 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
             "clients": [],
             "lock": threading.Lock(),
             "has_client": threading.Event(),
-            "state": {"track": None},
+            # track: last polled track; payload: last track_change sent, replayed to new clients
+            "state": {"track": None, "payload": None},
         }
 
     def _broadcast_to(sp: dict, event: str, data: dict):
@@ -42,6 +42,24 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
         with sp["lock"]:
             for q in list(sp["clients"]):
                 q.put(payload)
+
+    def _lyrics_fields(result: dict) -> dict:
+        return {
+            "lyrics": result["synced"],
+            "plain_lyrics": result["plain"],
+            "instrumental": result["instrumental"],
+        }
+
+    def _fetch_lyrics_async(sp: dict, track: dict):
+        def run():
+            fields = _lyrics_fields(fetch_lyrics(track["artist"], track["title"], track.get("duration_ms", 0)))
+            payload = sp["state"]["payload"]
+            # Drop the result if the song changed while LRCLIB was answering
+            if payload is None or (payload["title"], payload["artist"]) != (track["title"], track["artist"]):
+                return
+            payload.update(fields, lyrics_pending=False)
+            _broadcast_to(sp, "lyrics", {"title": track["title"], "artist": track["artist"], **fields})
+        threading.Thread(target=run, daemon=True).start()
 
     def _poll_speaker(ip: str):
         sp = _speakers[ip]
@@ -53,7 +71,7 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                 track = get_current_track(ip)
                 prev = sp["state"]["track"]
                 if prev is None or track["title"] != prev["title"] or track["artist"] != prev["artist"]:
-                    lyrics = fetch_lyrics(track["artist"], track["title"]) if track["title"] else []
+                    cached = get_cached_lyrics(track["artist"], track["title"]) if track["title"] else None
                     art_url = track.get("art_url", "")
                     if not art_url and (track["artist"] or track["album"]):
                         art_url = fetch_album_art(track["artist"], track["album"])
@@ -61,20 +79,27 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
                         volume = get_volume(ip)
                     except SonosUnavailableError:
                         volume = None
-                    sp["state"]["track"] = track
-                    _broadcast_to(sp, "track_change", {
+                    pending = bool(track["title"]) and cached is None
+                    payload = {
                         "title": track["title"],
                         "artist": track["artist"],
                         "album": track["album"],
                         "art_url": art_url,
-                        "lyrics": lyrics,
+                        **_lyrics_fields(cached or {"synced": [], "plain": "", "instrumental": False}),
+                        "lyrics_pending": pending,
                         "duration_ms": track.get("duration_ms", 0),
                         "volume": volume,
-                    })
+                    }
+                    sp["state"]["track"] = track
+                    sp["state"]["payload"] = payload
+                    _broadcast_to(sp, "track_change", payload)
+                    if pending:
+                        _fetch_lyrics_async(sp, track)
                 else:
                     _broadcast_to(sp, "position", {"position_ms": track["position_ms"]})
             except SonosUnavailableError:
                 sp["state"]["track"] = None
+                sp["state"]["payload"] = None
                 _broadcast_to(sp, "waiting", {})
             except Exception:
                 logging.exception("Unexpected error polling %s", ip)
@@ -98,13 +123,15 @@ def create_app(sonos_ip: str, poll_interval: float = 1.0, initial_delay: float =
     def stream():
         ip = request.args.get("ip")
         if ip not in _speakers:
-            # Fall back to auto-detect: use first speaker that's playing, or first speaker
             ip = ips[0]
 
         sp = _speakers[ip]
         q: queue.SimpleQueue = queue.SimpleQueue()
         with sp["lock"]:
             sp["clients"].append(q)
+            # Joining mid-song: send the current track now rather than waiting for the next one
+            if sp["state"]["payload"] is not None:
+                q.put(f"event: track_change\ndata: {json.dumps(sp['state']['payload'])}\n\n")
         sp["has_client"].set()
 
         def generate():

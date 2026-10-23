@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-23
+- feat: lyric lookup sends track duration, retries with version tags stripped ("- Remastered 2011", "(Live)", "feat. X"), then falls back to LRCLIB search picking the closest-length match
+- feat: show plain (unsynced) lyrics and "Instrumental" instead of "No lyrics available"
+- feat: SQLite lyrics cache (`cache/lyrics.db`, mounted as a volume on the NAS) — hits kept forever, misses retried after an hour; transient LRCLIB errors no longer hide a song until restart
+- feat: uncached lyrics load in the background so the track header and progress update immediately
+- fix: a second device joining mid-song now gets the current track instead of a blank screen
+- docs: drop the stale "LRCLIB times out" blocker
+
 ## 2026-07-13
 - chore: bring project up to house standard (README, CLAUDE.md, ROADMAP, CHANGELOG; ignore .superpowers/)
 
